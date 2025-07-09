@@ -19,7 +19,7 @@ class CustomUserManager(UserManager):
         extra_fields.setdefault('is_superuser', False)
         return self._create_user(email, password, **extra_fields)
     
-    def create_super(self, email=None, password=None, **extra_fields):
+    def create_superuser(self, email=None, password=None, **extra_fields):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
         return self._create_user(email, password, **extra_fields)
@@ -29,10 +29,12 @@ class User(AbstractBaseUser, PermissionsMixin):
         ('usuarionormal','Usuario Normal'),
         ('repartidor', 'Repartidor'),
         ('admin', 'Administrador'),
+        ('empresa','Empresa')
     ]
-    email=models.EmailField(blank=True, default='', unique=True)
+    email=models.EmailField(unique=True)
     name= models.CharField(max_length=255, blank=True, default='')
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='usuarionormal')
+    
 
     is_active= models.BooleanField(default=True)
     is_superuser= models.BooleanField(default=False)
