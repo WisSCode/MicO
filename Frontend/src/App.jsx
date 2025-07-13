@@ -11,7 +11,7 @@ import './styles/main.css';
 function App() {
   return (
     <Router>
-      <Header />
+     
       <main>
         <Routes>
           <Route path="/" element={<HomePage />} />
@@ -19,7 +19,7 @@ function App() {
           <Route path="/register" element={<RegisterPage />} />
         </Routes>
       </main>
-      <Footer />
+      
     </Router>
   );
 }
