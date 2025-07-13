@@ -1,0 +1,5 @@
+/* main.css */
+@import 'variables.css';
+@import 'components/hero.css';
+@import 'components/category-filter.css';
+@import 'components/restaurant-card.css';
