@@ -55,6 +55,8 @@ class PedidoViewSet(viewsets.ModelViewSet):
             return Pedido.objects.filter(empresa__in=empresas)
         elif user.role == 'usuarionormal':
             return Pedido.objects.filter(cliente=user)
+        elif user.role == 'repartidor':
+            return Pedido.objects.filter(repartidor__user=user)
         else:
             return Pedido.objects.none()
 

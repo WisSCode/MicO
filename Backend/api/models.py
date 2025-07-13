@@ -1,16 +1,5 @@
 from django.db import models
-from users.models import User 
-
-class Empresa(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='empresas')
-    nombre = models.CharField(max_length=255)
-    direccion = models.CharField(max_length=500, blank=True)
-    telefono = models.CharField(max_length=20, blank=True)
-    logo = models.ImageField(upload_to='logos_empresas/', blank=True, null=True)
-    creado_en = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return self.nombre
+from users.models import User, Empresa, Repartidor 
 
 class Producto(models.Model):
     empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name='productos')
@@ -32,6 +21,7 @@ class Pedido(models.Model):
 
     cliente = models.ForeignKey(User, on_delete=models.CASCADE, related_name='pedidos', db_index=True)
     empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name='pedidos', db_index=True)
+    repartidor = models.ForeignKey(Repartidor, on_delete=models.SET_NULL, related_name='pedidos', null=True, blank=True)
     fecha_pedido = models.DateTimeField(auto_now_add=True)
     total = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     estado = models.CharField(max_length=20, choices=ESTADOS, default='pendiente')

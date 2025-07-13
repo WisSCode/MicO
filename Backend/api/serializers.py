@@ -35,12 +35,22 @@ class PedidoSerializer(serializers.ModelSerializer):
     )
     empresa_nombre = serializers.CharField(source='empresa.nombre', read_only=True)
     cliente_nombre = serializers.CharField(source='cliente.name', read_only=True)
+    repartidor_id = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.filter(role='repartidor'), source='repartidor', required=False, allow_null=True
+    )
+    repartidor_nombre = serializers.CharField(source='repartidor.user.name', read_only=True, default=None)
     items = ItemPedidoSerializer(many=True)
 
     class Meta:
         model = Pedido
-        fields = ['id', 'cliente_nombre', 'empresa_id', 'empresa_nombre', 'fecha_pedido', 'total', 'estado', 'items']
-        read_only_fields = ['id', 'cliente_nombre', 'fecha_pedido', 'total', 'empresa_nombre']
+        fields = [
+            'id', 'cliente_nombre', 'empresa_id', 'empresa_nombre',
+            'repartidor_id', 'repartidor_nombre',
+            'fecha_pedido', 'total', 'estado', 'items'
+        ]
+        read_only_fields = [
+            'id', 'cliente_nombre', 'fecha_pedido', 'total', 'empresa_nombre', 'repartidor_nombre'
+        ]
 
     def create(self, validated_data):
         items_data = validated_data.pop('items')
