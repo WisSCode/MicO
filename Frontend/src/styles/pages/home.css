@@ -1,0 +1,37 @@
+.home-page {
+  animation: fadeIn 0.5s ease-in;
+}
+
+/* Hero Section (ya incluido en el ejemplo anterior) */
+
+/* Filtro de categorías */
+.category-filter {
+  display: flex;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-xl);
+  overflow-x: auto;
+  padding-bottom: var(--space-xs);
+}
+
+.category-btn {
+  background: var(--gray-100);
+  border: none;
+  border-radius: var(--radius-full);
+  padding: var(--space-xs) var(--space-md);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.3s;
+}
+
+.category-btn.active {
+  background: var(--primary-blue);
+  color: var(--white);
+}
+
+/* Grid de restaurantes */
+.restaurant-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-lg);
+  margin-top: var(--space-xl);
+}

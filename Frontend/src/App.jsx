@@ -1,18 +1,26 @@
-
-import { Routes, Route } from "react-router-dom";
-import Home from './pages/Home';
-import "./App.css";
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import HomePage from './pages/HomePage';
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
+import './components/Home/CategoryFilter';
+import './components/Home/HeroSection';
+import './components/Home/RestaurantGrid';
+import './styles/main.css';
 
 function App() {
   return (
-    <div>
-      
+    <Router>
+     
+      <main>
         <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/home/" element={<Home />} />
-          
+          <Route path="/" element={<HomePage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
         </Routes>
-        </div>
+      </main>
+      
+    </Router>
   );
 }
 

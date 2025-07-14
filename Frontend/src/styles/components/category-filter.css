@@ -1,0 +1,33 @@
+.category-filter {
+  display: flex;
+  gap: var(--space-sm);
+  overflow-x: auto;
+  padding-bottom: var(--space-xs);
+  margin-bottom: var(--space-xl);
+  scrollbar-width: none; /* Firefox */
+}
+
+.category-filter::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
+
+.category-btn {
+  background: var(--gray-100);
+  border: none;
+  border-radius: var(--radius-full);
+  padding: var(--space-xs) var(--space-md);
+  font-size: 0.9rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.3s;
+  color: var(--gray-700);
+}
+
+.category-btn:hover {
+  background: var(--gray-200);
+}
+
+.category-btn.active {
+  background: var(--primary-blue);
+  color: var(--white);
+}
