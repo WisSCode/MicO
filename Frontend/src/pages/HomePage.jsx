@@ -1,6 +1,6 @@
 import React from 'react';
 import HeroSection from '../components/Home/HeroSection';
-import RestaurantGrid from '../components/Home/RestaurantGrid';
+//import RestaurantGrid from '../components/Home/RestaurantGrid';
 import CategoryFilter from '../components/Home/CategoryFilter';
 
 const HomePage = () => {
@@ -9,7 +9,7 @@ const HomePage = () => {
       <HeroSection />
       <div className="container">
         <CategoryFilter />
-        <RestaurantGrid />
+        {/*<RestaurantGrid />*/}
       </div>
     </div>
   );
