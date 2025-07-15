@@ -1,32 +1,19 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { FaHamburger } from "react-icons/fa";
-import axios from 'axios';
-
-const login = async (email, password) => {
-  const response = await axios.post('/api/login/', {
-    email,
-    password,
-  });
-  localStorage.setItem('access', response.data.access);
-  localStorage.setItem('refresh', response.data.refresh);
-  return response.data;
-};
 
 const LoginPage = () => {
+
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [error, setError] = React.useState('');
-  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
     try {
       await login(email, password);
-      navigate('/');
     } catch (err) {
-      setError('Correo o contraseña incorrectos');
+      setError('Credenciales incorrectas');
     }
   };
 
@@ -35,6 +22,8 @@ const LoginPage = () => {
       <div className="auth-container">
         <img src={FaHamburger} alt="MICO Logo" className="auth-logo" />
         <h2 className="auth-title">Inicia sesión en MICO</h2>
+        {error && <p className="auth-error">{error}</p>}
+        
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-group">
             <input
@@ -54,11 +43,11 @@ const LoginPage = () => {
               required
             />
           </div>
-          {error && <div className="auth-error">{error}</div>}
           <button type="submit" className="btn-primary full-width">
             Ingresar
           </button>
         </form>
+
         <div className="auth-footer">
           <p>
             ¿No tienes cuenta? <Link to="/register">Regístrate</Link>
