@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FaHamburger } from "react-icons/fa";
+import { FaHamburger, FaEye, FaEyeSlash } from "react-icons/fa";
 import axios from 'axios';
 
 const login = async (email, password) => {
@@ -19,11 +19,12 @@ const login = async (email, password) => {
 };
 
 const LoginPage = () => {
-  const [email, setEmail] = React.useState('');
-  const [password, setPassword] = React.useState('');
-  const [error, setError] = React.useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
-  const [loading, setLoading] = React.useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -31,10 +32,14 @@ const LoginPage = () => {
     setLoading(true);
     try {
       const data = await login(email, password);
-      if (data.access && data.refresh) {
+      if (data.access && data.refresh && data.role) {
         setEmail('');
         setPassword('');
-        navigate('/homeuser');
+        if (data.role === 'repartidor') {
+          navigate('/homerepartidor');
+        } else {
+          navigate('/homeuser');
+        }
       } else {
         setError('Error al iniciar sesión. Intenta de nuevo.');
       }
@@ -46,10 +51,11 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="auth-page">
+    <div className="auth-page" style={{ background: '#e3f0ff' }}>
       <div className="auth-container">
-        <FaHamburger className="auth-logo" />
+        <span className="auth-logo"><FaHamburger size={48} /></span>
         <h2 className="auth-title">Inicia sesión en MICO</h2>
+        {error && <p className="auth-error">{error}</p>}
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-group">
             <input
@@ -60,14 +66,23 @@ const LoginPage = () => {
               required
             />
           </div>
-          <div className="form-group">
+          <div className="form-group relative">
             <input
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               placeholder="Contraseña"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
             />
+            <button
+              type="button"
+              className="show-hide-btn"
+              tabIndex={-1}
+              onClick={() => setShowPassword(v => !v)}
+              aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+            >
+              {showPassword ? <FaEyeSlash /> : <FaEye />}
+            </button>
           </div>
           {error && <div className="auth-error">{error}</div>}
           <button type="submit" className="btn-primary full-width" disabled={loading}>
