@@ -11,8 +11,11 @@ const RegisterPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    // Simulación de registro - aquí iría la llamada real al backend
     try {
-      await register(name, email, password);
+      // await register(name, email, password);
+      console.log('Register attempt:', { name, email, password });
+      // Por ahora solo simulamos éxito
     } catch (err) {
       setError('Error al registrar. Intenta nuevamente.');
     }
@@ -21,7 +24,9 @@ const RegisterPage = () => {
   return (
     <div className="auth-page">
       <div className="auth-container">
-        <img src={FaHamburger} alt="MICO Logo" className="auth-logo" />
+        <div className="auth-logo">
+          <FaHamburger size={60} color="#f97316" />
+        </div>
         <h2 className="auth-title">Crea tu cuenta en MICO</h2>
         {error && <p className="auth-error">{error}</p>}
         

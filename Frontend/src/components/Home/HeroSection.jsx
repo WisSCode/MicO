@@ -11,8 +11,8 @@ const HeroSection = () => {
         </h1>
         <p>Comida rápida, gourmet y más. Todo a un clic de distancia.</p>
         <div className="hero-actions">
-          <Link to="/restaurants" className="btn-primary">Ordenar ahora</Link>
-          <Link to="/how-it-works" className="btn-outline">Cómo funciona</Link>
+          <Link to="/order" className="btn-primary">Ordenar ahora</Link>
+          <Link to="/order-history" className="btn-outline">Historial</Link>
         </div>
       </div>
       <div className="hero-image" />
