@@ -20,6 +20,7 @@ from django.http import HttpResponse
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include('users.urls')),
+    path('user/', include('users.urls')),
+    path('api/', include('api.urls')),
     path('', lambda request: HttpResponse("Bienvenido a la API de MicO"), name='home'),
 ]
