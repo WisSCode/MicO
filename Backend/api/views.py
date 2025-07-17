@@ -1,3 +1,7 @@
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from django.utils import timezone
+from datetime import timedelta
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied
@@ -44,6 +48,24 @@ class ProductoViewSet(viewsets.ModelViewSet):
         serializer.save(empresa=empresa)
 
 class PedidoViewSet(viewsets.ModelViewSet):
+
+    @action(detail=False, methods=['get'], url_path='ventas-semanales')
+    def ventas_semanales(self, request):
+        user = request.user
+        if user.role != 'empresa':
+            return Response({'error': 'No autorizado'}, status=403)
+        empresas = user.empresas.all()
+        pedidos = Pedido.objects.filter(empresa__in=empresas, fecha_pedido__gte=timezone.now()-timedelta(days=7))
+        # Inicializar ventas por día (Lunes=0 ... Domingo=6)
+        ventas = [0 for _ in range(7)]
+        for pedido in pedidos:
+            dia = pedido.fecha_pedido.weekday()
+            ventas[dia] += float(pedido.total)
+        # Reordenar para que el lunes sea el primero
+        return Response({
+            'labels': ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
+            'ventas': ventas
+        })
     queryset = Pedido.objects.all()
     serializer_class = PedidoSerializer
     permission_classes = [IsAuthenticated]

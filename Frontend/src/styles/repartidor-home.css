@@ -1,0 +1,75 @@
+/* Estilos personalizados para HomeRepartidorPage */
+.repartidor-home {
+  padding: 2rem;
+  max-width: 900px;
+  margin: 0 auto;
+}
+.stats-row {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+.stats-box {
+  flex: 1;
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+}
+.stats-total { background: #e0f2fe; }
+.stats-entregadas { background: #bbf7d0; }
+.stats-pendientes { background: #fee2e2; }
+.pedidos-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.pedido-card {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px #0001;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.pedido-info {
+  flex: 1;
+}
+.pedido-direccion {
+  color: #2563eb;
+  font-size: 15px;
+}
+.btn-mapa {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.btn-entregado {
+  background: #16a34a;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.btn-cerrar-mapa {
+  margin-top: 12px;
+  background: #64748b;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+#maplibre-map, #mapbox-map {
+  width: 100%;
+  height: 350px;
+  border-radius: 12px;
+  overflow: hidden;
+}

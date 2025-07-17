@@ -72,4 +72,17 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         data['email'] = self.user.email
         data['role'] = self.user.role
 
+        # Si el usuario es empresa, incluir el nombre de la empresa
+        if self.user.role == 'empresa':
+            empresa = getattr(self.user, 'empresa', None)
+            if empresa:
+                data['empresaNombre'] = empresa.nombre
+            else:
+                # Si el usuario tiene varias empresas, toma la primera
+                empresas = getattr(self.user, 'empresas', None)
+                if empresas and empresas.exists():
+                    data['empresaNombre'] = empresas.first().nombre
+                else:
+                    data['empresaNombre'] = ''
+
         return data
