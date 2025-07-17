@@ -7,6 +7,12 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied
 from .models import Empresa, Producto, Pedido
 from .serializers import EmpresaSerializer, ProductoSerializer, PedidoSerializer
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from .models import UbicacionRepartidor
+from .serializers import UbicacionRepartidorSerializer
+
 
 class EmpresaViewSet(viewsets.ModelViewSet):
     queryset = Empresa.objects.all()
@@ -84,3 +90,16 @@ class PedidoViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(cliente=self.request.user)
+
+
+class GuardarUbicacionRepartidor(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        data = request.data.copy()
+        data['repartidor'] = request.user.id
+        serializer = UbicacionRepartidorSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

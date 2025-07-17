@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import Empresa, Producto, Pedido, ItemPedido
 from users.models import User
+from .models import UbicacionRepartidor
 
 class EmpresaSerializer(serializers.ModelSerializer):
     class Meta:
@@ -100,3 +101,8 @@ class PedidoSerializer(serializers.ModelSerializer):
             instance.save(update_fields=['total'])
 
         return instance
+    
+    class UbicacionRepartidorSerializer(serializers.ModelSerializer):
+        class Meta:
+            model = UbicacionRepartidor
+            fields = '__all__'

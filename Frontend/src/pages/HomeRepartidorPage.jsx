@@ -9,7 +9,7 @@ const MAPTILER_KEY = 'HGPx4i0Pm39GPzeBQ2Q0';
 const HomeRepartidorPage = () => {
   const [stats, setStats] = useState({ total: 0, entregadas: 0, pendientes: 0 });
   const [pedidos, setPedidos] = useState([]);
-  const [mapPedido, setMapPedido] = useState(null); // id del pedido a mostrar en mapa
+  const [mapPedido, setMapPedido] = useState(null);
   const [mapInstance, setMapInstance] = useState(null);
 
   useEffect(() => {
@@ -20,7 +20,6 @@ const HomeRepartidorPage = () => {
           headers: { Authorization: `Bearer ${token}` }
         });
         setPedidos(res.data);
-        // Estadísticas básicas
         const entregadas = res.data.filter(p => p.estado === 'entregado').length;
         const pendientes = res.data.filter(p => p.estado !== 'entregado').length;
         setStats({ total: res.data.length, entregadas, pendientes });
@@ -32,6 +31,29 @@ const HomeRepartidorPage = () => {
     fetchPedidos();
   }, []);
 
+  // NUEVO: Mostrar ubicación actual del repartidor
+  useEffect(() => {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+
+        const map = new maplibregl.Map({
+          container: 'mapbox-map-repartidor',
+          style: `https://api.maptiler.com/maps/streets/style.json?key=${MAPTILER_KEY}`,
+          center: [longitude, latitude],
+          zoom: 14,
+        });
+
+        new maplibregl.Marker({ color: 'blue' })
+          .setLngLat([longitude, latitude])
+          .addTo(map);
+      },
+      (error) => {
+        console.error('No se pudo obtener la ubicación del repartidor', error);
+      }
+    );
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
     const showMap = async () => {
@@ -39,7 +61,6 @@ const HomeRepartidorPage = () => {
         const pedido = pedidos.find(p => p.id === mapPedido);
         if (pedido && !mapInstance) {
           let lat = pedido.lat, lng = pedido.lng;
-          // Si no hay lat/lng, geocodifica la dirección
           if ((lat === undefined || lng === undefined) && pedido.direccion) {
             try {
               const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(pedido.direccion)}`);
@@ -64,7 +85,6 @@ const HomeRepartidorPage = () => {
       }
     };
     showMap();
-    // Cleanup
     return () => {
       cancelled = true;
       if (mapInstance) {
@@ -72,16 +92,14 @@ const HomeRepartidorPage = () => {
         setMapInstance(null);
       }
     };
-    // eslint-disable-next-line
   }, [mapPedido]);
 
-  //prueba para la geolocalización de Fredy
   useEffect(() => {
-  // Intentar obtener la ubicación actual del repartidor al cargar
   navigator.geolocation.getCurrentPosition(
-    (position) => {
+    async (position) => {
       const { latitude, longitude } = position.coords;
 
+      // Mostrar en mapa
       const map = new maplibregl.Map({
         container: 'mapbox-map-repartidor',
         style: `https://api.maptiler.com/maps/streets/style.json?key=${MAPTILER_KEY}`,
@@ -89,10 +107,24 @@ const HomeRepartidorPage = () => {
         zoom: 14,
       });
 
-      // Marcador azul para el repartidor
       new maplibregl.Marker({ color: 'blue' })
         .setLngLat([longitude, latitude])
         .addTo(map);
+
+      // ENVIAR al backend
+      try {
+        const token = localStorage.getItem('access');
+        await axios.post('http://localhost:8000/api/ubicacion/', {
+          latitud: latitude,
+          longitud: longitude
+        }, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+      } catch (error) {
+        console.error('Error al guardar ubicación:', error);
+      }
     },
     (error) => {
       console.error('No se pudo obtener la ubicación del repartidor', error);
@@ -100,7 +132,7 @@ const HomeRepartidorPage = () => {
   );
 }, []);
 
-
+  
   const marcarEntregado = async (id) => {
     try {
       const token = localStorage.getItem('access');
@@ -115,6 +147,7 @@ const HomeRepartidorPage = () => {
   return (
     <div className="repartidor-home" style={{ padding: '2rem', maxWidth: 900, margin: '0 auto' }}>
       <h2 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: 24 }}>Panel de Repartidor</h2>
+
       <div style={{ display: 'flex', gap: 24, marginBottom: 32 }}>
         <div style={{ flex: 1, background: '#e0f2fe', borderRadius: 12, padding: 16, textAlign: 'center' }}>
           <div style={{ fontSize: 32, fontWeight: 700 }}>{stats.total}</div>
@@ -129,6 +162,7 @@ const HomeRepartidorPage = () => {
           <div>Pendientes</div>
         </div>
       </div>
+
       <h3 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: 16 }}>Pedidos en curso</h3>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
         {pedidos.filter(p => p.estado !== 'entregado').length === 0 && (
@@ -149,15 +183,22 @@ const HomeRepartidorPage = () => {
           </div>
         ))}
       </div>
+
       {mapPedido !== null && (
         <div style={{ marginTop: 32 }}>
           <h4 style={{ fontWeight: 600, marginBottom: 8 }}>Ubicación del cliente</h4>
-          <div id="mapbox-map"></div>
+          <div id="mapbox-map" style={{ height: 300, borderRadius: 8 }}></div>
           <button className="btn-cerrar-mapa" onClick={() => setMapPedido(null)}>
             Cerrar mapa
           </button>
         </div>
       )}
+
+      {/* NUEVO MAPA: Ubicación del repartidor */}
+      <div style={{ marginTop: 32 }}>
+        <h4 style={{ fontWeight: 600, marginBottom: 8 }}>Tu ubicación actual</h4>
+        <div id="mapbox-map-repartidor" style={{ height: 300, borderRadius: 8 }}></div>
+      </div>
     </div>
   );
 };

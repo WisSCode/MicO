@@ -1,5 +1,6 @@
 from django.db import models
-from users.models import User, Empresa, Repartidor 
+from users.models import User, Empresa, Repartidor
+from django.contrib.auth.models import User
 
 class Producto(models.Model):
     empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name='productos')
@@ -46,3 +47,9 @@ class ItemPedido(models.Model):
 
     def get_total(self):
         return self.cantidad * self.precio_unitario
+    
+    class UbicacionRepartidor(models.Model):
+    repartidor = models.ForeignKey(User, on_delete=models.CASCADE)
+    latitud = models.DecimalField(max_digits=9, decimal_places=6)
+    longitud = models.DecimalField(max_digits=9, decimal_places=6)
+    timestamp = models.DateTimeField(auto_now=True)
