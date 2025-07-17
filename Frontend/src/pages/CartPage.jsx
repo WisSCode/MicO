@@ -77,8 +77,31 @@ const CartPage = () => {
 
   const handleCheckout = () => {
     if (cart.length === 0) return;
-    // Aquí podrías llamar a un endpoint de orden si lo tienes
-    navigate('/checkout');
+    // Construir el pedido y guardarlo en localStorage
+    const order = {
+      items: cart.map(item => ({
+        id: item.producto.id,
+        name: item.producto.nombre,
+        price: parseFloat(item.producto.precio),
+        quantity: item.quantity,
+        empresa: item.producto.empresa
+      })),
+      total: cart.reduce((total, item) => total + (parseFloat(item.producto.precio) * item.quantity), 0)
+    };
+    localStorage.setItem('pendingOrder', JSON.stringify(order));
+    // Limpiar el carrito en el backend y frontend
+    const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
+    const token = localStorage.getItem('token');
+    axios.post(`${API_BASE}/cart/clear/`, {}, {
+      headers: { Authorization: `Bearer ${token}` }
+    }).then(() => {
+      setCart([]);
+      navigate('/checkout');
+    }).catch(() => {
+      // Si falla, igual navega al checkout pero muestra el carrito vacío
+      setCart([]);
+      navigate('/checkout');
+    });
   };
 
   if (loading) {

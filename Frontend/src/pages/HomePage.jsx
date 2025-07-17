@@ -1,10 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
+import AddToCartModal from '../components/AddToCartModal';
+import { addToCart } from '../utils/cart';
 import { useNavigate } from 'react-router-dom';
 import { FaStar, FaMapMarkerAlt, FaPhoneAlt, FaStore } from 'react-icons/fa';
 import heroBg from '../assets/images/home.avif';
 import '../styles/main.css';
+import { UserContext } from '../components/UserContext';
 
 import { fetchEmpresasPublic } from '../utils/empresas_public';
+import { searchEmpresasYComidas } from '../utils/search';
 
 const MEDIA_URL = 'http://localhost:8000/media/';
 
@@ -16,17 +20,63 @@ const HomePage = () => {
   const [empresas, setEmpresas] = useState([]);
   const [imageErrors, setImageErrors] = useState({});
   const [address, setAddress] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [searchResults, setSearchResults] = useState({ empresas: [], productos: [] });
+  const [searching, setSearching] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const { user } = useContext(UserContext); // 
 
   useEffect(() => {
     fetchEmpresasPublic().then(setEmpresas).catch(() => setEmpresas([]));
   }, []);
 
+  useEffect(() => {
+    if (!searchTerm.trim()) {
+      setSearchResults({ empresas: [], productos: [] });
+      setSearching(false);
+      return;
+    }
+    setSearching(true);
+    const timeout = setTimeout(() => {
+      searchEmpresasYComidas(searchTerm)
+        .then(res => {
+          setSearchResults(res);
+          setSearching(false);
+        })
+        .catch(() => {
+          setSearchResults({ empresas: [], productos: [] });
+          setSearching(false);
+        });
+    }, 400);
+    return () => clearTimeout(timeout);
+  }, [searchTerm]);
+
+  const handleProductClick = (producto) => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+    setSelectedProduct(producto);
+    setModalOpen(true);
+  };
+
+  const handleAddToCart = async (producto, quantity) => {
+    try {
+      await addToCart(producto.id, quantity);
+      setModalOpen(false);
+    } catch (err) {
+      alert('Error al añadir al carrito');
+    }
+  };
+
   const handleEmpresaClick = (empresa) => {
-    // Navega usando el nombre de la empresa en la URL (asegura que sea el campo correcto)
+    if (!user) {
+      navigate('/login');
+      return;
+    }
     if (empresa && empresa.nombre) {
       navigate(`/${encodeURIComponent(empresa.nombre)}/products`);
-    } else {
-      alert('No se encontró el nombre de la empresa');
     }
   };
 
@@ -82,6 +132,9 @@ const HomePage = () => {
             alignItems: 'center',
             gap: '1rem',
             marginTop: '0.5rem',
+            flexDirection: 'column',
+            width: '100%',
+            maxWidth: 420,
           }}>
             <div style={{
               display: 'flex',
@@ -95,12 +148,11 @@ const HomePage = () => {
               width: '100%',
               height: 48,
             }}>
-              <FaMapMarkerAlt style={{ color: '#f97316', fontSize: '1.2rem', marginRight: 8 }} />
               <input
                 type="text"
-                placeholder="Ingresa la dirección de entrega"
-                value={address}
-                onChange={e => setAddress(e.target.value)}
+                placeholder="Buscar empresas o comidas..."
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
                 style={{
                   border: 'none',
                   outline: 'none',
@@ -112,28 +164,51 @@ const HomePage = () => {
                 }}
               />
             </div>
-            <button
-              style={{
-                background: '#111',
-                color: '#fff',
-                border: 'none',
+            {searchTerm.trim() && (
+              <div style={{
+                background: '#fff',
                 borderRadius: 8,
-                fontWeight: 600,
-                fontSize: '1rem',
-                height: 48,
-                padding: '0 1.2rem',
-                cursor: 'pointer',
-                transition: 'background 0.2s',
-                minWidth: 120,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-              onClick={() => alert(`Buscando comida para: ${address}`)}
-              disabled={!address.trim()}
-            >
-              Buscar comida
-            </button>
+                boxShadow: '0 2px 12px 0 rgba(0,0,0,0.04)',
+                marginTop: 8,
+                width: '100%',
+                maxWidth: 420,
+                padding: '1rem',
+                zIndex: 10,
+              }}>
+                {searching ? (
+                  <div style={{ textAlign: 'center', color: '#888' }}>Buscando...</div>
+                ) : (
+                  <>
+                    {searchResults.empresas.length > 0 && (
+                      <div>
+                        <div style={{ fontWeight: 600, marginBottom: 4 }}>Empresas</div>
+                        {searchResults.empresas.map(empresa => (
+                          <div key={empresa.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0.5rem 0', cursor: 'pointer' }} onClick={() => handleEmpresaClick(empresa)}>
+                            <img src={empresa.logo ? (empresa.logo.startsWith('http') ? empresa.logo : MEDIA_URL + empresa.logo) : undefined} alt={empresa.nombre} style={{ width: 32, height: 32, borderRadius: 8, objectFit: 'cover', background: '#eee' }} />
+                            <span>{empresa.nombre}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {searchResults.productos.length > 0 && (
+                      <div style={{ marginTop: 12 }}>
+                        <div style={{ fontWeight: 600, marginBottom: 4 }}>Comidas</div>
+                        {searchResults.productos.map(producto => (
+                          <div key={producto.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0.5rem 0', cursor: 'pointer' }} onClick={() => handleProductClick(producto)}>
+                            <img src={producto.imagen ? (producto.imagen.startsWith('http') ? producto.imagen : MEDIA_URL + producto.imagen) : undefined} alt={producto.nombre} style={{ width: 32, height: 32, borderRadius: 8, objectFit: 'cover', background: '#eee' }} />
+                            <span>{producto.nombre}</span>
+                            <span style={{ color: '#888', fontSize: 12 }}>({producto.empresa_nombre})</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {searchResults.empresas.length === 0 && searchResults.productos.length === 0 && (
+                      <div style={{ textAlign: 'center', color: '#888' }}>Sin resultados</div>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -205,7 +280,13 @@ const HomePage = () => {
           </div>
         </section>
       </div>
-    </div>
+    <AddToCartModal
+      product={selectedProduct}
+      open={modalOpen}
+      onClose={() => setModalOpen(false)}
+      onAdd={handleAddToCart}
+    />
+  </div>
   );
 };
 

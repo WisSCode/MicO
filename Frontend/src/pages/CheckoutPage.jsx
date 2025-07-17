@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { FaArrowLeft, FaCreditCard, FaMapMarkerAlt, FaUser } from 'react-icons/fa';
 
@@ -10,8 +11,6 @@ const CheckoutPage = () => {
     email: '',
     phone: '',
     address: '',
-    city: '',
-    zipCode: '',
     cardNumber: '',
     cardName: '',
     expiryDate: '',
@@ -26,6 +25,29 @@ const CheckoutPage = () => {
       return;
     }
     setOrderData(JSON.parse(savedOrder));
+
+    // Obtener datos del usuario autenticado
+    const fetchUserProfile = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+        const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
+        const res = await axios.get(`${API_BASE.replace(/\/api$/, '')}/user/profile/`, { 
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const user = res.data;
+        setFormData(prev => ({
+          ...prev,
+          name: user.name || '',
+          email: user.email || '',
+          phone: user.telefono || '',
+          address: user.direccion || '',
+        }));
+      } catch (err) {
+        // No autocompletar si hay error
+      }
+    };
+    fetchUserProfile();
   }, [navigate]);
 
   const validateForm = () => {
@@ -36,8 +58,7 @@ const CheckoutPage = () => {
     else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Email inválido';
     if (!formData.phone.trim()) newErrors.phone = 'Teléfono es requerido';
     if (!formData.address.trim()) newErrors.address = 'Dirección es requerida';
-    if (!formData.city.trim()) newErrors.city = 'Ciudad es requerida';
-    if (!formData.zipCode.trim()) newErrors.zipCode = 'Código postal es requerido';
+    // Eliminados ciudad y código postal
     if (!formData.cardNumber.trim()) newErrors.cardNumber = 'Número de tarjeta es requerido';
     if (!formData.cardName.trim()) newErrors.cardName = 'Nombre en tarjeta es requerido';
     if (!formData.expiryDate.trim()) newErrors.expiryDate = 'Fecha de expiración es requerida';
@@ -65,27 +86,42 @@ const CheckoutPage = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
     if (!validateForm()) return;
 
-    const finalOrder = {
-      ...orderData,
-      customerInfo: formData,
-      orderId: `ORD-${Date.now()}`,
-      status: 'pending',
-      createdAt: new Date().toISOString()
+    // Construir el payload para el backend
+    const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
+    const token = localStorage.getItem('token');
+    // Obtener el id de la empresa del primer producto
+    const empresaId = orderData.items[0]?.producto?.empresa || orderData.items[0]?.empresa || orderData.items[0]?.empresa_id;
+    const items = orderData.items.map(item => ({
+      producto_id: item.producto?.id || item.producto_id || item.id,
+      cantidad: item.quantity,
+    }));
+    const payload = {
+      empresa_id: empresaId,
+      items,
     };
-
-    // Save order to localStorage for order history
-    const existingOrders = JSON.parse(localStorage.getItem('orders') || '[]');
-    existingOrders.push(finalOrder);
-    localStorage.setItem('orders', JSON.stringify(existingOrders));
-
-    // Clear cart
-    localStorage.removeItem('cart');
-    localStorage.removeItem('pendingOrder');
-
-    navigate('/order-confirmation', { state: { order: finalOrder } });
+    axios.post(`${API_BASE}/pedidos/`, payload, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(res => {
+        localStorage.removeItem('cart');
+        localStorage.removeItem('pendingOrder');
+        navigate('/order-confirmation', { state: { orderId: res.data.id } });
+      })
+      .catch(err => {
+        let msg = 'Error al crear el pedido. Intenta de nuevo.';
+        if (err.response && err.response.data) {
+          if (typeof err.response.data === 'object') {
+            msg += '\n' + JSON.stringify(err.response.data);
+          } else if (typeof err.response.data === 'string' && err.response.data.startsWith('<!DOCTYPE html')) {
+            msg += '\nError interno del servidor.';
+          } else {
+            msg += '\n' + err.response.data;
+          }
+        }
+        alert(msg);
+      });
   };
 
   if (!orderData) {
@@ -204,7 +240,6 @@ const CheckoutPage = () => {
               <FaMapMarkerAlt size={16} />
               Dirección de entrega
             </h3>
-            
             <div style={{ marginBottom: '1rem' }}>
               <input
                 type="text"
@@ -221,44 +256,6 @@ const CheckoutPage = () => {
                 }}
               />
               {errors.address && <p style={{ margin: '0.25rem 0 0 0', color: '#e74c3c', fontSize: '0.8rem' }}>{errors.address}</p>}
-            </div>
-            
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-              <div>
-                <input
-                  type="text"
-                  name="city"
-                  placeholder="Ciudad"
-                  value={formData.city}
-                  onChange={handleInputChange}
-                  style={{ 
-                    width: '100%', 
-                    padding: '0.75rem', 
-                    border: `1px solid ${errors.city ? '#e74c3c' : '#dee2e6'}`, 
-                    borderRadius: '8px',
-                    fontSize: '0.9rem'
-                  }}
-                />
-                {errors.city && <p style={{ margin: '0.25rem 0 0 0', color: '#e74c3c', fontSize: '0.8rem' }}>{errors.city}</p>}
-              </div>
-              
-              <div>
-                <input
-                  type="text"
-                  name="zipCode"
-                  placeholder="Código postal"
-                  value={formData.zipCode}
-                  onChange={handleInputChange}
-                  style={{ 
-                    width: '100%', 
-                    padding: '0.75rem', 
-                    border: `1px solid ${errors.zipCode ? '#e74c3c' : '#dee2e6'}`, 
-                    borderRadius: '8px',
-                    fontSize: '0.9rem'
-                  }}
-                />
-                {errors.zipCode && <p style={{ margin: '0.25rem 0 0 0', color: '#e74c3c', fontSize: '0.8rem' }}>{errors.zipCode}</p>}
-              </div>
             </div>
           </div>
 

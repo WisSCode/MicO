@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-const UserContext = createContext();
+export const UserContext = createContext();
 
 export const useUser = () => {
   const context = useContext(UserContext);
@@ -40,10 +40,10 @@ export const UserProvider = ({ children }) => {
 
   const login = (userData) => {
     try {
+      // Solo agrega createdAt si lo necesitas, pero NO sobrescribas id ni name
       const userToSave = {
         ...userData,
-        id: Date.now(),
-        createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString()
       };
       setUser(userToSave);
       localStorage.setItem('user', JSON.stringify(userToSave));

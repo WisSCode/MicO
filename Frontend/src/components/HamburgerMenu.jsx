@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useUser } from './UserContext';
 import { FaListAlt, FaHistory, FaStore, FaGift, FaUserCircle, FaShoppingCart, FaCreditCard, FaHome } from 'react-icons/fa';
 import '../styles/components/hamburgerMenu.css';
@@ -9,7 +9,7 @@ const HEADER_HEIGHT = 64; // px, debe coincidir con el header
 const HamburgerMenu = ({ isOpen, onToggle }) => {
   const { user } = useUser();
   const location = useLocation();
-
+  const navigate = useNavigate();
   const handleClose = () => onToggle();
   const handleNav = () => onToggle();
 
@@ -47,9 +47,9 @@ const HamburgerMenu = ({ isOpen, onToggle }) => {
             
             return (
               <li key={item.path}>
-                <Link 
-                  to={item.path} 
-                  onClick={handleNav} 
+                <Link
+                  to={user ? item.path : '/login'}
+                  onClick={handleNav}
                   className={isActive ? 'active' : ''}
                   style={{
                     animationDelay: `${menuItems.indexOf(item) * 0.1}s`

@@ -32,15 +32,16 @@ class CartSerializer(serializers.ModelSerializer):
 
 class ItemPedidoSerializer(serializers.ModelSerializer):
     producto_id = serializers.PrimaryKeyRelatedField(
-        queryset=Producto.objects.all(), source='producto'
+        queryset=Producto.objects.all(), source='producto', write_only=True
     )
     producto_nombre = serializers.CharField(source='producto.nombre', read_only=True)
+    precio_unitario = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
     total = serializers.SerializerMethodField()
 
     class Meta:
         model = ItemPedido
         fields = ['id', 'producto_id', 'producto_nombre', 'cantidad', 'precio_unitario', 'total']
-        read_only_fields = ['id', 'producto_nombre', 'total']
+        read_only_fields = ['id', 'producto_nombre', 'precio_unitario', 'total']
 
     def get_total(self, obj):
         return obj.get_total()
@@ -70,7 +71,8 @@ class PedidoSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         items_data = validated_data.pop('items')
-        pedido = Pedido.objects.create(cliente=self.context['request'].user, **validated_data)
+        cliente = validated_data.pop('cliente', self.context['request'].user)
+        pedido = Pedido.objects.create(cliente=cliente, **validated_data)
         total_pedido = 0
 
         for item_data in items_data:

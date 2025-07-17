@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FaCheckCircle, FaClock, FaUtensils, FaTruck, FaHome, FaArrowLeft } from 'react-icons/fa';
+import axios from 'axios';
 
 const OrderConfirmationPage = () => {
   const navigate = useNavigate();
@@ -18,18 +19,24 @@ const OrderConfirmationPage = () => {
 
   useEffect(() => {
     setLoading(true);
-    if (location.state?.order) {
-      setOrder(location.state.order);
-      setLoading(false);
+    const orderId = location.state?.orderId;
+    if (orderId) {
+      const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
+      const token = localStorage.getItem('token');
+      axios.get(`${API_BASE}/pedidos/${orderId}/`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+        .then(res => {
+          setOrder(res.data);
+          setLoading(false);
+        })
+        .catch(() => {
+          setOrder(null);
+          setLoading(false);
+        });
     } else {
-      // If no order in state, try to get from localStorage
-      const orders = JSON.parse(localStorage.getItem('orders') || '[]');
-      if (orders.length > 0) {
-        setOrder(orders[orders.length - 1]);
-        setLoading(false);
-      } else {
-        setTimeout(() => setLoading(false), 300);
-      }
+      setOrder(null);
+      setLoading(false);
     }
   }, [location.state]);
 
@@ -117,82 +124,49 @@ const OrderConfirmationPage = () => {
         {/* Order Details */}
         <div style={{ background: '#fff', borderRadius: '8px', padding: '1.5rem', marginBottom: '1.5rem' }}>
           <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.2rem', fontWeight: 600 }}>Detalles del pedido</h3>
-          
           <div style={{ marginBottom: '1rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
               <span style={{ fontWeight: 600 }}>Número de pedido:</span>
-              <span>{order.orderId}</span>
+              <span>{order.id}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
               <span style={{ fontWeight: 600 }}>Fecha:</span>
-              <span>{new Date(order.createdAt).toLocaleDateString()}</span>
+              <span>{order.fecha_pedido ? new Date(order.fecha_pedido).toLocaleDateString() : ''}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
               <span style={{ fontWeight: 600 }}>Total:</span>
               <span style={{ fontSize: '1.1rem', fontWeight: 600, color: '#2c3e50' }}>${order.total}</span>
             </div>
           </div>
-
-          {/* Filtrar items válidos */}
-          {(() => {
-            const validItems = Array.isArray(order?.items)
-              ? order.items.filter(item =>
-                  item &&
-                  typeof item === 'object' &&
-                  typeof item.name === 'string' &&
-                  typeof item.quantity === 'number' &&
-                  typeof item.price === 'number'
-                )
-              : [];
-            if (validItems.length === 0) {
-              return <div style={{color:'#888',fontSize:'0.95rem'}}>Sin productos en este pedido</div>;
-            }
-            return validItems.map((item, index) => (
-              <div key={(item.name || 'item') + '-' + index} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
-                <span>{item.quantity}x {item.name}</span>
-                <span>${item.price * item.quantity}</span>
+          {order.items && order.items.length > 0 ? (
+            order.items.map((item, index) => (
+              <div key={item.id || index} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+                <span>{item.cantidad}x {item.producto_nombre}</span>
+                <span>${item.precio_unitario * item.cantidad}</span>
               </div>
-            ));
-          })()}
-
-          {order.coupon && (
-            <div style={{ borderTop: '1px solid #e5e5e5', paddingTop: '1rem', marginTop: '1rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Cupón aplicado:</span>
-                <span style={{ color: '#27ae60', fontWeight: 600 }}>{order.coupon}</span>
-              </div>
-            </div>
+            ))
+          ) : (
+            <div style={{color:'#888',fontSize:'0.95rem'}}>Sin productos en este pedido</div>
           )}
         </div>
 
         {/* Delivery Information */}
         <div style={{ background: '#fff', borderRadius: '8px', padding: '1.5rem', marginBottom: '1.5rem' }}>
           <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.2rem', fontWeight: 600 }}>Información de entrega</h3>
-          
           <div style={{ marginBottom: '0.5rem' }}>
-            <strong>{order.customerInfo.name}</strong>
+            <strong>{order.cliente_nombre}</strong>
           </div>
-          <div style={{ marginBottom: '0.5rem', color: '#666' }}>
-            {order.customerInfo.address}
-          </div>
-          <div style={{ marginBottom: '0.5rem', color: '#666' }}>
-            {order.customerInfo.city}, {order.customerInfo.zipCode}
-          </div>
-          <div style={{ color: '#666' }}>
-            Tel: {order.customerInfo.phone}
-          </div>
+          {/* Si tienes dirección, muéstrala aquí */}
         </div>
 
         {/* Order Tracking */}
         <div style={{ background: '#fff', borderRadius: '8px', padding: '1.5rem' }}>
           <h3 style={{ margin: '0 0 1.5rem 0', fontSize: '1.2rem', fontWeight: 600 }}>Seguimiento del pedido</h3>
-          
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {orderStages.map((stage, index) => {
               const IconComponent = stage.icon;
               const isActive = index <= currentStage;
               const isCompleted = index < currentStage;
-              
               return (
                 <div key={index} style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                   <div style={{
@@ -276,4 +250,4 @@ const OrderConfirmationPage = () => {
   );
 };
 
-export default OrderConfirmationPage; 
+export default OrderConfirmationPage;

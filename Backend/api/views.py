@@ -81,22 +81,31 @@ class ProductoViewSet(viewsets.ModelViewSet):
     serializer_class = ProductoSerializer
     permission_classes = [IsAuthenticated]
 
+    # Endpoint público para listar y buscar productos
+    @action(detail=False, methods=['get'], url_path='public', permission_classes=[])
+    def public(self, request):
+        search = request.query_params.get('search', None)
+        productos = Producto.objects.all()
+        if search:
+            productos = productos.filter(nombre__icontains=search)
+        serializer = self.get_serializer(productos, many=True)
+        return Response(serializer.data)
+
     def get_queryset(self):
         user = self.request.user
-        if user.role == 'empresa':
+        if hasattr(user, 'role') and user.role == 'empresa':
             empresas = user.empresas.all()
             return Producto.objects.filter(empresa__in=empresas)
         return Producto.objects.none()
 
     def perform_create(self, serializer):
         user = self.request.user
-        if user.role != 'empresa':
+        if not hasattr(user, 'role') or user.role != 'empresa':
             raise PermissionDenied("Solo usuarios con rol 'empresa' pueden crear productos.")
 
         empresas = user.empresas.all()
         if not empresas.exists():
             raise PermissionDenied("Usuario no tiene ninguna empresa asociada.")
-        
         # Aquí se debería especificar la empresa a la que se le ,
         # Por simplicidad, asignamos a la primera empresa:
         empresa = empresas.first()

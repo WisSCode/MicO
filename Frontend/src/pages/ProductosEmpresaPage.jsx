@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import StickyEmpresaNavbar from '../components/StickyEmpresaNavbar';
 import { FaSearch, FaBoxOpen, FaEdit, FaTrash } from 'react-icons/fa';
 import { useParams } from 'react-router-dom';
 import '../styles/empresa-home.css';
@@ -110,7 +109,6 @@ const ProductosEmpresaPage = () => {
 
   return (
     <div className="empresa-home">
-      <StickyEmpresaNavbar />
       <div className="empresa-header" style={{gap: '1.5rem', flexWrap: 'wrap'}}>
         <span className="empresa-nombre"><FaBoxOpen style={{marginRight:8}}/> Productos de la Empresa</span>
         <div style={{position:'relative', minWidth:220}}>

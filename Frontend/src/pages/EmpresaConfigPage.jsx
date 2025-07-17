@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import StickyEmpresaNavbar from '../components/StickyEmpresaNavbar';
 import { useParams } from 'react-router-dom';
 // ...existing code...
 import '../styles/empresa-home.css';
@@ -8,6 +7,7 @@ import '../styles/empresa-home.css';
 const EmpresaConfigPage = () => {
   const { empresaNombre } = useParams();
   const [form, setForm] = useState({ nombre: '', direccion: '', telefono: '', logo: null });
+  const [empresaId, setEmpresaId] = useState(null);
   const [logoPreview, setLogoPreview] = useState(null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -22,6 +22,7 @@ const EmpresaConfigPage = () => {
           headers: { Authorization: `Bearer ${token}` }
         });
         const empresa = res.data[0];
+        setEmpresaId(empresa.id);
         setForm({
           nombre: empresa.nombre || '',
           direccion: empresa.direccion || '',
@@ -60,7 +61,8 @@ const EmpresaConfigPage = () => {
     if (form.logo) data.append('logo', form.logo);
     try {
       setLoading(true);
-      await axios.patch('http://localhost:8000/api/empresas/1/', data, {
+      if (!empresaId) throw new Error('No se encontró el id de la empresa');
+      await axios.patch(`http://localhost:8000/api/empresas/${empresaId}/`, data, {
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
       });
       setSuccess(true);
@@ -73,7 +75,7 @@ const EmpresaConfigPage = () => {
 
   return (
     <>
-      <StickyEmpresaNavbar />
+      {/* La navegación de empresa ahora está en Header.jsx */}
       <div className="empresa-config-container">
         <h2 className="empresa-config-title" style={{textAlign: 'center'}}>Información General</h2>
         <form className="empresa-config-form" onSubmit={handleSubmit}>
