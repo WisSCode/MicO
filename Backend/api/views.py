@@ -1,3 +1,4 @@
+
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.utils import timezone
@@ -5,9 +6,45 @@ from datetime import timedelta
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied
-from .models import Empresa, Producto, Pedido
-from .serializers import EmpresaSerializer, ProductoSerializer, PedidoSerializer
+from .models import Empresa, Producto, Pedido, Cart, CartItem
+from .serializers import EmpresaSerializer, ProductoSerializer, PedidoSerializer, CartSerializer
 
+class CartViewSet(viewsets.ModelViewSet):
+    queryset = Cart.objects.all()
+    serializer_class = CartSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Cart.objects.filter(user=self.request.user)
+
+    @action(detail=False, methods=['get'], url_path='my-cart')
+    def my_cart(self, request):
+        cart, created = Cart.objects.get_or_create(user=request.user)
+        serializer = self.get_serializer(cart)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['post'], url_path='add-item')
+    def add_item(self, request):
+        cart, created = Cart.objects.get_or_create(user=request.user)
+        producto_id = request.data.get('producto_id')
+        quantity = int(request.data.get('quantity', 1))
+        if not producto_id:
+            return Response({'error': 'producto_id requerido'}, status=400)
+        item, created = CartItem.objects.get_or_create(cart=cart, producto_id=producto_id)
+        item.quantity = quantity
+        item.save()
+        serializer = self.get_serializer(cart)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['post'], url_path='remove-item')
+    def remove_item(self, request):
+        cart, created = Cart.objects.get_or_create(user=request.user)
+        producto_id = request.data.get('producto_id')
+        if not producto_id:
+            return Response({'error': 'producto_id requerido'}, status=400)
+        CartItem.objects.filter(cart=cart, producto_id=producto_id).delete()
+        serializer = self.get_serializer(cart)
+        return Response(serializer.data)
 class EmpresaViewSet(viewsets.ModelViewSet):
     # Endpoint para obtener los productos de una empresa específica
     @action(detail=True, methods=['get'], url_path='products', permission_classes=[])

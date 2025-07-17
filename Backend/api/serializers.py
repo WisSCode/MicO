@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import Empresa, Producto, Pedido, ItemPedido
 from users.models import User
+from .models import Cart, CartItem
 
 class EmpresaSerializer(serializers.ModelSerializer):
     class Meta:
@@ -13,6 +14,21 @@ class ProductoSerializer(serializers.ModelSerializer):
         model = Producto
         fields = ['id', 'empresa', 'nombre', 'descripcion', 'precio', 'imagen']
         read_only_fields = ['id', 'empresa']
+
+class CartItemSerializer(serializers.ModelSerializer):
+    producto = ProductoSerializer(read_only=True)
+    producto_id = serializers.PrimaryKeyRelatedField(queryset=Producto.objects.all(), source='producto', write_only=True)
+
+    class Meta:
+        model = CartItem
+        fields = ['id', 'producto', 'producto_id', 'quantity', 'added_at']
+
+class CartSerializer(serializers.ModelSerializer):
+    items = CartItemSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Cart
+        fields = ['id', 'user', 'created_at', 'updated_at', 'items']
 
 class ItemPedidoSerializer(serializers.ModelSerializer):
     producto_id = serializers.PrimaryKeyRelatedField(

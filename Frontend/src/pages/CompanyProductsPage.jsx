@@ -82,25 +82,19 @@ const CompanyProductsPage = () => {
     setFavs(favs.includes(id) ? favs.filter(f => f !== id) : [...favs, id]);
   };
 
-  const handleAddToCart = (product) => {
-    const cartItem = {
-      id: product.id,
-      name: product.name,
-      price: product.price,
-      quantity: 1,
-      company: company.name,
-      image: product.image
-    };
-    const existingCart = JSON.parse(localStorage.getItem('cart') || '[]');
-    const existingItemIndex = existingCart.findIndex(item => item.id === product.id);
-    if (existingItemIndex >= 0) {
-      existingCart[existingItemIndex].quantity += 1;
-    } else {
-      existingCart.push(cartItem);
+  const token = localStorage.getItem('token');
+  const handleAddToCart = async (product) => {
+    try {
+      await axios.post(`${API_BASE}/cart/add-item/`, {
+        producto_id: product.id,
+        quantity: 1
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      navigate('/cart');
+    } catch (err) {
+      alert('Error al agregar al carrito');
     }
-    localStorage.setItem('cart', JSON.stringify(existingCart));
-    window.dispatchEvent(new Event('cartUpdated'));
-    navigate('/cart');
   };
 
   return (
