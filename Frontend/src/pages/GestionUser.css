@@ -1,0 +1,299 @@
+/* --- Variables CSS para consistencia --- */
+:root {
+    --bg-light: #ffffff; /* Fondo blanco */
+    --bg-table: transparent; /* Fondo transparente para tabla y elementos */
+    --text-dark: #1a202c;
+    --text-medium: #718096;
+    --text-light: #a0aec0;
+    --primary-orange: #f97316;
+    --primary-purple: #8b5cf6;
+    --border-color: #e0e0e0;
+    --shadow-light: 0 4px 10px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05);
+    --shadow-hover: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+/* --- Base & Layout --- */
+body, html {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    font-family: 'Inter', sans-serif;
+    color: var(--text-dark);
+    line-height: 1.6;
+    background-color: var(--bg-light); /* Fondo blanco para el body */
+}
+
+.gestion-usuarios-container {
+    padding: 3rem 2rem;
+    min-height: 100vh;
+    box-sizing: border-box;
+    background-color: var(--bg-light); /* Fondo blanco */
+    color: var(--text-dark);
+}
+
+.header-section {
+    text-align: left;
+    margin-bottom: 3.5rem;
+    padding: 0 1rem;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.main-title {
+    font-family: 'Quicksand', sans-serif;
+    font-size: 2.8rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 1rem;
+}
+
+.subtitle {
+    font-size: 1.15rem;
+    color: var(--text-medium);
+    line-height: 1.6;
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+/* Main content width adjustment */
+.max-w-7xl.mx-auto.px-4.py-6 {
+    max-width: none;
+    margin-left: 0;
+    margin-right: 0;
+    padding: 2rem 4rem;
+}
+
+/* Tool bar */
+.flex.flex-col.sm\:flex-row.sm\:items-center.mb-6 {
+    margin-bottom: 2.5rem;
+    padding: 0 1rem;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.flex.flex-col.sm\:flex-row.sm\:items-center.mb-6 > select,
+.flex.flex-col.sm\:flex-row.sm\:items-center.mb-6 > input[type="search"] {
+    border: 1px solid var(--border-color);
+    border-radius: 0.625rem;
+    padding: 0.6rem 1rem;
+    font-size: 0.95rem;
+    color: var(--text-dark);
+    background-color: var(--bg-table); /* Fondo transparente */
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease-in-out;
+}
+
+.flex.flex-col.sm\:flex-row.sm\:items-center.mb-6 > select:hover,
+.flex.flex-col.sm\:flex-row.sm\:items-center.mb-6 > input[type="search"]:hover {
+    border-color: var(--text-light);
+}
+
+.flex.flex-col.sm\:flex-row.sm\:items-center.mb-6 > select:focus,
+.flex.flex-col.sm\:flex-row.sm\:items-center.mb-6 > input[type="search"]:focus {
+    border-color: var(--primary-purple);
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.3);
+}
+
+@media (min-width: 640px) {
+    .mt-6.flex.flex-col.sm\:flex-row.sm\:items-center.justify-between {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
+}
+
+/* Table Container */
+.bg-white.rounded-lg.shadow.overflow-hidden.border.border-gray-200 {
+    background-color: var(--bg-table); /* Fondo transparente */
+    border-radius: 0.75rem;
+    box-shadow: var(--shadow-light);
+    overflow: hidden;
+}
+
+/* Table Styles */
+.min-w-full { width: 100%; }
+.divide-y > * + * { border-top: 1px solid #ebf0f5; }
+
+/* Table Header */
+.bg-gray-50.thead-light th {
+    background-color: var(--primary-orange);
+    color: #fff;
+    padding: 1rem 1.25rem;
+    font: 600 0.8rem / 1.2rem 'Inter', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    text-align: center;
+}
+
+td {
+    padding: 1.2rem 1.25rem;
+    white-space: nowrap;
+    vertical-align: middle;
+    font-size: 0.875rem;
+    color: var(--text-dark);
+    text-align: center;
+}
+
+td:first-child {
+    text-align: left;
+}
+
+td:first-child .text-left.w-full {
+    text-align: left;
+}
+
+.hover\:bg-gray-50:hover {
+    background-color: #f5f7fa; /* Fondo claro para hover */
+    transition: background-color 200ms ease-in-out;
+}
+
+/* Role Badges */
+.rounded-full {
+    border-radius: 9999px;
+}
+
+.inline-flex {
+    display: inline-flex;
+}
+
+.leading-5 {
+    line-height: 1.25rem;
+}
+
+.font-semibold {
+    font-weight: 600;
+}
+
+.px-3 {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+}
+
+.py-1 {
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+}
+
+/* Role Colors */
+.bg-indigo-100 { background-color: #e0e7ff; color: #4338ca; }
+.bg-purple-100 { background-color: #ede9fe; color: #6b46c1; }
+.bg-green-100 { background-color: #dcfce7; color: #16a34a; }
+.bg-blue-100 { background-color: #e0f2fe; color: #2563eb; }
+
+/* Action Buttons Column */
+.actions-column {
+    width: 1%;
+    text-align: center;
+}
+
+.actions-column .flex {
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.actions-column button {
+    background-color: var(--primary-orange);
+    color: #fff;
+    border-radius: 0.375rem;
+    padding: 0.5rem;
+    transition: all 0.2s ease-in-out;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.actions-column button:hover {
+    background-color: #ea580c;
+    box-shadow: var(--shadow-hover);
+}
+
+.actions-column button:active {
+    background-color: #c2410c;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Pagination - Eliminada la paginación, pero se mantiene el espacio si se reintegra */
+.mt-6.flex.flex-col.sm\:flex-row.sm\:items-center.justify-between {
+    margin-top: 2rem; /* Espacio mínimo por si se agrega paginación */
+    gap: 1.5rem;
+    flex-direction: column;
+    align-items: center;
+}
+
+@media (min-width: 640px) {
+    .mt-6.flex.flex-col.sm\:flex-row.sm\:items-center.justify-between {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
+}
+
+/* Estilos de paginación eliminados, pero se pueden restaurar si es necesario */
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+/* --- Responsive Adjustments --- */
+@media (max-width: 992px) {
+    .max-w-7xl.mx-auto.px-4.py-6 {
+        padding-left: 2rem;
+        padding-right: 2rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .gestion-usuarios-container { padding: 1.5rem 1rem; }
+    .header-section { margin-bottom: 2rem; padding: 0 0.5rem; text-align: center; }
+    .main-title { font-size: 2rem; }
+    .subtitle { font-size: 0.9rem; }
+
+    .max-w-7xl.mx-auto.px-4.py-6 { padding: 1rem; }
+
+    .flex.flex-col.sm\:flex-row.sm\:items-center.mb-6 {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 0 0.5rem;
+        margin-bottom: 1.5rem;
+        gap: 0.75rem;
+    }
+
+    .flex.flex-col.sm\:flex-row.sm\:items-center.mb-6 > input[type="search"] {
+        margin-left: 0;
+    }
+
+    .bg-gray-50.thead-light th, td {
+        padding: 0.8rem 1rem;
+        font-size: 0.8rem;
+    }
+
+    .actions-column { text-align: center; }
+    .actions-column .flex { justify-content: center; }
+
+    .mt-6.flex.flex-col.sm\:flex-row.sm\:items-center.justify-between {
+        align-items: flex-start;
+        padding: 0 0.5rem;
+        margin-top: 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .gestion-usuarios-container { padding: 1rem 0.5rem; }
+    .main-title { font-size: 1.8rem; }
+    .subtitle { font-size: 0.85rem; }
+
+    .actions-column .flex { gap: 0.4rem; }
+    .actions-column button { padding: 0.4rem; }
+}

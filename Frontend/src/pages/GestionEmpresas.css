@@ -1,0 +1,335 @@
+/* --- General Styling & Container (Retained for context, no changes here) --- */
+.gestion-empresas-container {
+    padding: 30px;
+    background-color: #fef3e7;
+    min-height: 100vh;
+    font-family: 'Inter', sans-serif;
+    color: #333;
+    box-sizing: border-box;
+}
+
+/* --- Header Section (Retained for context, no changes here) --- */
+.header-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 35px;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.header-section h2 {
+    font-size: 2.2em;
+    color: #000000;
+    margin: 0;
+    font-weight: 700;
+}
+
+.header-actions {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.category-select {
+    padding: 10px 15px;
+    border: 1px solid #ffcc80;
+    border-radius: 8px;
+    background-color: #fff;
+    font-size: 1em;
+    color: #495057;
+    cursor: pointer;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    /* --- FIX: Updated arrow styling --- */
+    -webkit-appearance: none; /* Removes default Chrome/Safari dropdown arrow */
+    -moz-appearance: none;    /* Removes default Firefox dropdown arrow */
+    appearance: none;         /* Standard property to remove default dropdown arrow */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%23e65100' viewBox='0 0 24 24'%3E%3Cpath d='M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z'/%3E%3C/svg%3E"); /* Improved SVG for a clean arrow */
+    background-repeat: no-repeat;
+    background-position: right 12px center; /* Adjust position slightly */
+    background-size: 20px; /* Standard size for the arrow */
+    padding-right: 40px; /* Add more padding to prevent text overlapping arrow */
+    /* --- END FIX --- */
+}
+
+.category-select:focus {
+    border-color: #f97316;
+    box-shadow: 0 0 0 0.2rem rgba(249, 115, 22, 0.25);
+    outline: none;
+}
+
+/* The rest of your CSS remains unchanged */
+/* ... (empresa-cards-grid, empresa-card, card-top, etc.) ... */
+
+/* --- Empresa Cards Grid --- */
+.empresa-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 25px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.empresa-card {
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    padding: 25px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.empresa-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+}
+
+/* --- Card Top Section (Icon, Info, Status) --- */
+.card-top {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    gap: 15px;
+}
+
+.company-icon-circle {
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2em;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.active-icon-bg {
+    background: linear-gradient(45deg, #4CAF50, #388E3C);
+}
+
+.pending-icon-bg {
+    background: linear-gradient(45deg, #f97316, #e65100);
+}
+
+.company-info {
+    flex-grow: 1;
+}
+
+.company-name {
+    font-size: 1.4em;
+    color: #343a40;
+    margin: 0;
+    font-weight: 600;
+}
+
+.company-status {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.9em;
+    font-weight: 600;
+    text-transform: capitalize;
+    white-space: nowrap;
+}
+
+.status-active {
+    background-color: #e6ffed;
+    color: #28a745;
+}
+
+.status-pending {
+    background-color: #fff3e0;
+    color: #f97316;
+}
+
+/* --- Card Stats Row --- */
+.card-stats-row {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    margin-bottom: 25px;
+    padding: 15px 0;
+    border-top: 1px solid #eee;
+    border-bottom: 1px solid #eee;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    color: #555;
+    font-size: 1em;
+}
+
+.stat-item .stat-icon {
+    font-size: 1.5em;
+    color: #f97316;
+}
+
+.stat-item span:first-of-type {
+    font-weight: 700;
+    color: #343a40;
+    font-size: 1.1em;
+}
+
+.stat-item .stat-label {
+    font-size: 0.85em;
+    color: #6c757d;
+}
+
+/* --- Card Actions Bottom --- */
+.card-actions-bottom {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: auto;
+}
+
+.btn {
+    padding: 10px 18px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.95em;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.btn-edit {
+    background-color: #f97316;
+    color: #fff;
+}
+.btn-edit:hover {
+    background-color: #ea580c;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+.btn-edit:active {
+    background-color: #c2410c;
+    transform: translateY(0);
+}
+
+.btn-approve {
+    background-color: #4CAF50;
+    color: #fff;
+}
+.btn-approve:hover {
+    background-color: #388E3C;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+.btn-approve:active {
+    background-color: #2E7D32;
+    transform: translateY(0);
+}
+
+.btn-reject {
+    background-color: #dc3545;
+    color: #fff;
+}
+.btn-reject:hover {
+    background-color: #c82333;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+.btn-reject:active {
+    background-color: #bd2130;
+    transform: translateY(0);
+}
+
+/* --- Responsive Adjustments --- */
+@media (max-width: 768px) {
+    .header-section {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .header-section h2 {
+        font-size: 1.8em;
+    }
+
+    .header-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .category-select {
+        flex-grow: 1;
+    }
+
+    .empresa-cards-grid {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        padding: 0 10px;
+    }
+
+    .empresa-card {
+        padding: 20px;
+    }
+
+    .company-name {
+        font-size: 1.2em;
+    }
+
+    .company-icon-circle {
+        width: 45px;
+        height: 45px;
+        font-size: 1.8em;
+    }
+
+    .card-actions-bottom {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+    }
+    .btn {
+        padding: 10px;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .gestion-empresas-container {
+        padding: 20px 15px;
+    }
+
+    .header-section {
+        margin-bottom: 25px;
+    }
+
+    .header-section h2 {
+        font-size: 1.6em;
+    }
+
+    .empresa-cards-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .empresa-card {
+        padding: 18px;
+    }
+
+    .company-name {
+        font-size: 1.1em;
+    }
+
+    .company-icon-circle {
+        width: 40px;
+        height: 40px;
+        font-size: 1.6em;
+    }
+
+    .stat-item {
+        font-size: 0.9em;
+    }
+    .stat-item .stat-icon {
+        font-size: 1.3em;
+    }
+}
