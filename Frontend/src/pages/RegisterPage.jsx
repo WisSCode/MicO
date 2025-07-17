@@ -51,6 +51,9 @@ const RegisterPage = () => {
   const [empresaNombre, setEmpresaNombre] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  // Unificar mensaje para mostrar en el formulario
+  const [msg, setMsg] = useState('');
+  const [msgType, setMsgType] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
   // Cambia el color de fondo según el rol
@@ -60,13 +63,16 @@ const RegisterPage = () => {
     e.preventDefault();
     setError('');
     setSuccess('');
+    setMsg('');
+    setMsgType('');
     try {
       let data = { name, email, telefono, direccion, password, role };
       if (role === 'empresa') {
         data.empresa = { nombre: empresaNombre };
       }
       await register(data);
-      setSuccess('¡Registro exitoso!');
+      setMsg('¡Registro exitoso!');
+      setMsgType('success');
       setName('');
       setEmail('');
       setTelefono('');
@@ -74,31 +80,49 @@ const RegisterPage = () => {
       setPassword('');
       setEmpresaNombre('');
     } catch (err) {
-      setError(err.message);
+      setMsg(err.message);
+      setMsgType('error');
     }
   };
 
   return (
     <div className="auth-page" style={{ background: bgColor, transition: 'background 0.3s' }}>
       <div className="auth-container">
-        <span className="auth-logo"><FaHamburger size={48} /></span>
-        <h2 className="auth-title">Crea tu cuenta en MICO</h2>
-        <p style={{ textAlign: 'center', fontWeight: 500, marginBottom: 16 }}>Selecciona tu rol</p>
-        <div className="role-btns">
-          {roleOptions.map(opt => (
-            <button
-              key={opt.key}
-              type="button"
-              onClick={() => setRole(opt.key)}
-              className={`role-btn${role === opt.key ? ' selected' : ''}`}
-            >
-              {opt.icon}
-              <span className="role-label">{opt.label}</span>
-            </button>
-          ))}
+        <div className="auth-logo" style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
+          <span className="logo-text" style={{fontSize:'2.2rem',fontWeight:700}}>Mic</span>
+          <span className="burger-icon"><FaHamburger size={40} /></span>
         </div>
-        {error && <p className="auth-error">{error}</p>}
-        {success && <p className="auth-success">{success}</p>}
+        <h2 className="auth-title">Crea tu cuenta en MICO</h2>
+        <div className="role-selector">
+          <div className="role-selector-title">Selecciona tu rol</div>
+          <div className="role-selector-grid">
+            {roleOptions.map(opt => (
+              <button
+                key={opt.key}
+                type="button"
+                onClick={() => setRole(opt.key)}
+                className={`role-btn${role === opt.key ? ' selected' : ''}`}
+              >
+                {opt.icon}
+                <span className="role-label">{opt.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+        {msg && (
+          <div style={{
+            margin:'1rem 0',
+            color: msgType==='error' ? 'var(--error)' : 'var(--accent-green)',
+            background: msgType==='error' ? 'rgba(239,68,68,0.08)' : 'rgba(16,185,129,0.08)',
+            borderRadius:12,
+            padding:'0.7rem 1.2rem',
+            fontWeight:500,
+            fontSize:'1.05rem',
+            textAlign:'center',
+            transition:'all 0.3s',
+            animation:'fadeIn 0.5s',
+          }}>{msg}</div>
+        )}
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-group">
             <input
@@ -107,6 +131,7 @@ const RegisterPage = () => {
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
+              style={{transition:'box-shadow 0.2s',boxShadow:name? '0 2px 8px 0 rgba(37,99,235,0.08)':'none'}}
             />
           </div>
           <div className="form-group">
@@ -116,6 +141,7 @@ const RegisterPage = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              style={{transition:'box-shadow 0.2s',boxShadow:email? '0 2px 8px 0 rgba(37,99,235,0.08)':'none'}}
             />
           </div>
           <div className="form-group">
@@ -154,6 +180,7 @@ const RegisterPage = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              style={{transition:'box-shadow 0.2s',boxShadow:password? '0 2px 8px 0 rgba(37,99,235,0.08)':'none'}}
             />
             <button
               type="button"
@@ -165,7 +192,7 @@ const RegisterPage = () => {
               {showPassword ? <FaEyeSlash /> : <FaEye />}
             </button>
           </div>
-          <button type="submit" className="btn-primary">
+          <button type="submit" className="btn-primary full-width" style={{transition:'box-shadow 0.2s',boxShadow:'0 2px 8px 0 rgba(37,99,235,0.10)',borderRadius:14}}>
             Registrarse
           </button>
         </form>

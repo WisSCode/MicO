@@ -1,0 +1,213 @@
+.hamburger-btn {
+  position: fixed;
+  top: 1.5rem;
+  left: 1.5rem;
+  z-index: 1101;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: #fff;
+  border: none;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  cursor: pointer;
+  transition: box-shadow 0.2s;
+}
+.hamburger-btn span {
+  display: block;
+  width: 24px;
+  height: 3px;
+  margin: 3px 0;
+  background: #222;
+  border-radius: 2px;
+  transition: all 0.3s cubic-bezier(.4,2,.6,1);
+}
+.hamburger-btn.open span:nth-child(1) {
+  transform: translateY(6px) rotate(45deg);
+}
+.hamburger-btn.open span:nth-child(2) {
+  opacity: 0;
+}
+.hamburger-btn.open span:nth-child(3) {
+  transform: translateY(-6px) rotate(-45deg);
+}
+
+.sidebar, .apple-sidebar {
+  position: fixed;
+  top: 0;
+  left: -260px;
+  width: 240px;
+  height: 100vh;
+  background: #fff;
+  box-shadow: 2px 0 16px rgba(0,0,0,0.08);
+  z-index: 1102;
+  padding-top: 4rem;
+  /* sin transición */
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s;
+}
+.sidebar.open, .apple-sidebar.open {
+  left: 0;
+  opacity: 1;
+  pointer-events: auto;
+}
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.sidebar li {
+  margin: 1.5rem 0;
+  padding-left: 2rem;
+}
+.sidebar a {
+  text-decoration: none;
+  color: #222;
+  font-size: 1.1rem;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+.sidebar a:hover {
+  color: #007bff;
+}
+.sidebar-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.18);
+  z-index: 1100;
+  animation: fadeIn 0.2s;
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+} 
+
+.apple-sidebar {
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(16px);
+  box-shadow: 2px 0 24px rgba(0,0,0,0.10);
+  border-top-right-radius: 24px;
+  border-bottom-right-radius: 24px;
+  min-width: 260px;
+  max-width: 90vw;
+  padding-top: 0;
+  padding-bottom: 2rem;
+  /* sin transición */
+  z-index: 1102;
+  position: fixed;
+  left: -260px;
+  top: 64px;
+  height: calc(100vh - 64px);
+  display: flex;
+  flex-direction: column;
+  /* sin animación */
+}
+
+/* slideIn eliminado, no se usa */
+.apple-sidebar.open {
+  left: 0;
+}
+.sidebar-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-top: 1.5rem;
+}
+.sidebar-avatar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  color: var(--primary-blue-dark);
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+.sidebar-list {
+  list-style: none;
+  padding: 0 0 1.5rem 0;
+  margin: 0;
+}
+.sidebar-list li {
+  margin: 1.2rem 0;
+  padding-left: 2rem;
+}
+.sidebar-list a {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  text-decoration: none;
+  color: var(--gray-700);
+  font-size: 1.08rem;
+  font-weight: 500;
+  transition: color 0.2s, background 0.2s;
+  border-radius: 8px;
+  padding: 0.3rem 0.7rem;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  word-break: break-word;
+}
+.sidebar-list a.active, .sidebar-list a:hover {
+  background: var(--primary-blue-contrast);
+  color: var(--primary-blue);
+}
+.sidebar-cupones {
+  margin-top: 2.5rem;
+  padding: 0 1.5rem;
+}
+.sidebar-cupones h4 {
+  color: var(--secondary-orange);
+  font-size: 1.1rem;
+  margin-bottom: 0.7rem;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+.cupon-card {
+  background: var(--primary-blue-contrast);
+  border-radius: 10px;
+  padding: 0.7rem 1rem;
+  margin-bottom: 0.7rem;
+  box-shadow: 0 1px 4px 0 rgba(37,99,235,0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+.cupon-code {
+  color: var(--primary-blue-dark);
+  font-weight: 700;
+  font-size: 1rem;
+}
+.cupon-desc {
+  color: var(--gray-600);
+  font-size: 0.95rem;
+}
+.apple-blur {
+  backdrop-filter: blur(6px);
+}
+@media (max-width: 600px) {
+  .apple-sidebar {
+    min-width: 70vw;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    top: 56px;
+    height: calc(100vh - 56px);
+  }
+  .sidebar-list li {
+    padding-left: 1rem;
+  }
+  .sidebar-cupones {
+    padding: 0 0.5rem;
+  }
+} 
