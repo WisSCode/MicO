@@ -42,7 +42,7 @@ const LoginPage = () => {
         } else if (data.role === 'empresa') {
           navigate(`/${data.empresaNombre}/home`); 
         } else {
-          navigate('/homeuser');
+          navigate('/');
         }
       } else {
         setError('Error al iniciar sesión. Intenta de nuevo.');

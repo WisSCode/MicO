@@ -9,9 +9,27 @@ from .models import Empresa, Producto, Pedido
 from .serializers import EmpresaSerializer, ProductoSerializer, PedidoSerializer
 
 class EmpresaViewSet(viewsets.ModelViewSet):
+    # Endpoint para obtener los productos de una empresa específica
+    @action(detail=True, methods=['get'], url_path='products', permission_classes=[])
+    def products(self, request, pk=None):
+        try:
+            empresa = Empresa.objects.get(pk=pk)
+        except Empresa.DoesNotExist:
+            return Response({'error': 'Empresa no encontrada'}, status=404)
+        productos = Producto.objects.filter(empresa=empresa)
+        serializer = ProductoSerializer(productos, many=True)
+        return Response(serializer.data)
     queryset = Empresa.objects.all()
     serializer_class = EmpresaSerializer
-    permission_classes = [IsAuthenticated]
+    # Quitar la restricción global para permitir endpoints públicos
+    # permission_classes = [IsAuthenticated]
+
+    # Endpoint público para listar todas las empresas
+    @action(detail=False, methods=['get'], url_path='public', permission_classes=[])
+    def public(self, request):
+        empresas = Empresa.objects.all()
+        serializer = self.get_serializer(empresas, many=True)
+        return Response(serializer.data)
 
     def get_queryset(self):
         # El usuario puede ver solo sus propias empresas

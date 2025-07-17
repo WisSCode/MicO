@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import PrivateRoute from './components/PrivateRoute';
 import HomePage from './pages/HomePage';
-import HomeUser from './pages/HomeUser';
 import HomeRepartidorPage from './pages/HomeRepartidorPage';
 import HomeEmpresaPage from './pages/HomeEmpresaPage';
 import ProductosEmpresaPage from './pages/ProductosEmpresaPage';
@@ -88,11 +87,6 @@ function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
-          <Route path="/homeuser" element={
-            <PrivateRoute>
-              <HomeUser />
-            </PrivateRoute>
-          } />
           <Route path="/homeRepartidor" element={
             <PrivateRoute>
               <HomeRepartidorPage />
@@ -115,7 +109,7 @@ function App() {
           } />
             <Route path="/order" element={<OrderPage />} />
             <Route path="/order-history" element={<OrderHistoryPage />} />
-            <Route path="/company/:companyId/products" element={<CompanyProductsPage />} />
+            <Route path="/:empresaNombre/products" element={<CompanyProductsPage />} />
             <Route path="/product/:productId" element={<ProductDetailPage />} />
             <Route path="/cart" element={<CartPage />} />
             <Route path="/checkout" element={<CheckoutPage />} />
