@@ -1,56 +1,124 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { FaHamburger } from "react-icons/fa";
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { FaHamburger, FaEye, FaEyeSlash } from "react-icons/fa";
+import axios from 'axios';
+
+const login = async (email, password) => {
+  const response = await axios.post(
+    'http://localhost:8000/user/login/',
+    { email, password },
+    {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+  localStorage.setItem('token', response.data.access);
+  localStorage.setItem('refresh', response.data.refresh);
+  return response.data;
+};
 
 const LoginPage = () => {
-
-  const [email, setEmail] = React.useState('');
-  const [password, setPassword] = React.useState('');
-  const [error, setError] = React.useState('');
+  const [email, setEmail] = useState('');
+  // const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [msg, setMsg] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+    setLoading(true);
     try {
-      await login(email, password);
+      const data = await login(email, password);
+      if (data.access && data.refresh && data.role) {
+        setEmail('');
+        setPassword('');
+        if (data.role === 'repartidor') {
+          navigate('/homerepartidor');
+        } else if (data.role === 'empresa') {
+          navigate(`/${data.empresaNombre}/home`); 
+        } else {
+          navigate('/homeuser');
+        }
+      } else {
+        setError('Error al iniciar sesión. Intenta de nuevo.');
+      }
     } catch (err) {
-      setError('Credenciales incorrectas');
+      setError('Correo o contraseña incorrectos');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="auth-page">
-      <div className="auth-container">
-        <img src={FaHamburger} alt="MICO Logo" className="auth-logo" />
-        <h2 className="auth-title">Inicia sesión en MICO</h2>
-        {error && <p className="auth-error">{error}</p>}
-        
-        <form onSubmit={handleSubmit} className="auth-form">
+    <div className="login-page" style={{background:'#f5f5f5',minHeight:'100vh'}}>
+      <div className="login-container">
+        {/* Header */}
+        <div className="login-header">
+          <div className="logo-container" style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
+            <span className="logo-text" style={{fontSize:'2.2rem',fontWeight:700}}>Mic</span>
+            <span className="burger-icon"><FaHamburger size={40} /></span>
+          </div>
+          <p className="app-subtitle">Plataforma de Gestión de Entregas</p>
+        </div>
+        {msg && (
+          <div style={{
+            margin:'1rem 0',
+            color: 'var(--accent-green)',
+            background: 'rgba(16,185,129,0.08)',
+            borderRadius:12,
+            padding:'0.7rem 1.2rem',
+            fontWeight:500,
+            fontSize:'1.05rem',
+            textAlign:'center',
+            transition:'all 0.3s',
+            animation:'fadeIn 0.5s',
+          }}>{msg}</div>
+        )}
+        {/* Login Form */}
+        <form onSubmit={handleSubmit} className="login-form">
           <div className="form-group">
+            <label>Correo electrónico</label>
             <input
               type="email"
-              placeholder="Correo electrónico"
+              placeholder="Ingresa tu correo"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              style={{transition:'box-shadow 0.2s',boxShadow:email? '0 2px 8px 0 rgba(37,99,235,0.08)':'none'}}
             />
           </div>
-          <div className="form-group">
+          <div className="form-group relative">
             <input
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               placeholder="Contraseña"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              style={{transition:'box-shadow 0.2s',boxShadow:password? '0 2px 8px 0 rgba(37,99,235,0.08)':'none'}}
             />
+            <button
+              type="button"
+              className="show-hide-btn"
+              tabIndex={-1}
+              onClick={() => setShowPassword(v => !v)}
+              aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+            >
+              {showPassword ? <FaEyeSlash /> : <FaEye />}
+            </button>
           </div>
-          <button type="submit" className="btn-primary full-width">
-            Ingresar
+          {error && <div className="auth-error">{error}</div>}
+          <button type="submit" className="login-button" disabled={loading}>
+            {loading ? 'Ingresando...' : 'Ingresar'}
           </button>
         </form>
-
         <div className="auth-footer">
           <p>
-            ¿No tienes cuenta? <Link to="/register">Regístrate</Link>
+            ¿No tienes cuenta? <Link to="/register">Regístrate aquí</Link>
           </p>
         </div>
       </div>

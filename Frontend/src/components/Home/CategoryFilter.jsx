@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 
 const categories = [
   { id: 1, name: 'Hamburguesas' },
@@ -8,9 +8,7 @@ const categories = [
   { id: 5, name: 'Postres' },
 ];
 
-const CategoryFilter = () => {
-  const [activeCategory, setActiveCategory] = useState(null);
-
+const CategoryFilter = ({ activeCategory, setActiveCategory }) => {
   return (
     <div className="category-filter">
       {categories.map((category) => (
@@ -22,6 +20,13 @@ const CategoryFilter = () => {
           {category.name}
         </button>
       ))}
+      <button
+        className={`category-btn ${activeCategory === null ? 'active' : ''}`}
+        onClick={() => setActiveCategory(null)}
+        style={{ marginLeft: 12 }}
+      >
+        Todas
+      </button>
     </div>
   );
 };
