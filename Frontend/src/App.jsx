@@ -85,12 +85,12 @@ function App() {
         <HamburgerMenu isOpen={isMenuOpen} onToggle={handleMenuToggle} />
         <main className="main-content">
           <Routes>
-            <Route path="/" element={<HomePage />} />
+            <Route path="/" element={<LoginPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
           <Route path="/homeuser" element={
             <PrivateRoute>
-              <HomeUser />
+              <HomePage />
             </PrivateRoute>
           } />
           <Route path="/homeRepartidor" element={
