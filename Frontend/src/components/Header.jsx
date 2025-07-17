@@ -94,6 +94,21 @@ const Header = ({ onMenuToggle }) => {
               </span>
             </Link>
           )}
+          <button
+            className="ue-logo-area"
+            style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+            onClick={() => {
+              if (user && (user.role === 'repartidor' || user.rol === 'repartidor')) {
+                navigate('/homerepartidor');
+              } else {
+                navigate('/');
+              }
+            }}
+          >
+            <span className="ue-logo-text">
+              Mic <span className="ue-burger-icon"><FaHamburger /></span>
+            </span>
+          </button>
         </div>
         <div className="ue-header-center">
           {user && user.role === 'usuarionormal' && (

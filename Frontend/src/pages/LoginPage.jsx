@@ -21,6 +21,7 @@ const login = async (email, password) => {
   localStorage.setItem('id', response.data.id);
   localStorage.setItem('email', response.data.email);
   localStorage.setItem('role', response.data.role);
+  localStorage.setItem('telefono', response.data.telefono);
   return response.data;
 };
 
@@ -48,7 +49,8 @@ const LoginPage = () => {
           id: data.id,
           name: data.name,
           email: data.email,
-          role: data.role
+          role: data.role,
+          telefono: data.telefono
         }); // Aquí pasas el nombre al contexto
         if (data.role === 'repartidor') {
           navigate('/homerepartidor');
