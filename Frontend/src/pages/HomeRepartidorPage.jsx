@@ -12,6 +12,7 @@ const MAPTILER_KEY = 'HGPx4i0Pm39GPzeBQ2Q0';
 const HomeRepartidorPage = () => {
   const [stats, setStats] = useState({ total: 0, entregadas: 0, pendientes: 0 });
   const [pedidos, setPedidos] = useState([]);
+  const [porAceptar, setPorAceptar] = useState([]);
   const [mapPedido, setMapPedido] = useState(null); // id del pedido a mostrar en mapa
   const [mapInstance, setMapInstance] = useState(null);
   const navigate = useNavigate();
@@ -19,17 +20,26 @@ const HomeRepartidorPage = () => {
   useEffect(() => {
     const fetchPedidos = async () => {
       try {
-        const token = localStorage.getItem('access');
+        const token = localStorage.getItem('token');
         const res = await axios.get('http://localhost:8000/api/pedidos/', {
           headers: { Authorization: `Bearer ${token}` }
         });
         setPedidos(res.data);
+        setPorAceptar(res.data.filter(p => !p.repartidor && p.estado === 'pendiente'));
         // Estadísticas básicas
         const entregadas = res.data.filter(p => p.estado === 'entregado').length;
         const pendientes = res.data.filter(p => p.estado !== 'entregado').length;
         setStats({ total: res.data.length, entregadas, pendientes });
       } catch (err) {
+        if (err.response && err.response.status === 401) {
+          alert('Sesión expirada o no autorizada. Por favor inicia sesión nuevamente.');
+          localStorage.removeItem('access');
+          navigate('/login');
+        } else {
+          alert('Error al cargar pedidos.');
+        }
         setPedidos([]);
+        setPorAceptar([]);
         setStats({ total: 0, entregadas: 0, pendientes: 0 });
       }
     };
@@ -81,13 +91,31 @@ const HomeRepartidorPage = () => {
 
   const marcarEntregado = async (id) => {
     try {
-      const token = localStorage.getItem('access');
+      const token = localStorage.getItem('token');
       await axios.patch(`http://localhost:8000/api/pedidos/${id}/`, { estado: 'entregado' }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setPedidos(pedidos => pedidos.map(p => p.id === id ? { ...p, estado: 'entregado' } : p));
       setStats(s => ({ ...s, entregadas: s.entregadas + 1, pendientes: s.pendientes - 1 }));
-    } catch {}
+    } catch (err) { 
+      alert('No se pudo marcar como entregado.');
+    }
+  };
+
+  const aceptarPedido = async (id) => {
+    try {
+      const token = localStorage.getItem('token');
+      let repartidorId = localStorage.getItem('repartidor_id');
+      // Asegura que el ID se envía como número si existe
+      let patchData = repartidorId ? { repartidor: Number(repartidorId) } : {};
+      const res = await axios.patch(`http://localhost:8000/api/pedidos/${id}/`, patchData, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setPorAceptar(porAceptar => porAceptar.filter(p => p.id !== id));
+      setPedidos(pedidos => pedidos.map(p => p.id === id ? res.data : p));
+    } catch (err) {
+      alert('No se pudo aceptar el pedido.');
+    }
   };
 
   return (
@@ -131,10 +159,10 @@ const HomeRepartidorPage = () => {
       </div>
       <h3 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: 16 }}>Pedidos en curso</h3>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-        {pedidos.filter(p => p.estado !== 'entregado').length === 0 && (
+        {pedidos.filter(p => p.estado !== 'entregado' && p.repartidor).length === 0 && (
           <div style={{ color: '#64748b' }}>No tienes pedidos en curso.</div>
         )}
-        {pedidos.filter(p => p.estado !== 'entregado').map(pedido => (
+          {pedidos.filter(p => p.estado !== 'entregado' && p.repartidor).map(pedido => (
           <div key={pedido.id} style={{ background: '#fff', borderRadius: 10, boxShadow: '0 2px 8px #0001', padding: 16, display: 'flex', alignItems: 'center', gap: 16 }}>
             <div style={{ flex: 1 }}>
               <div style={{ fontWeight: 600 }}>{pedido.cliente_nombre || pedido.cliente || 'Cliente'}</div>
@@ -145,6 +173,23 @@ const HomeRepartidorPage = () => {
             </button>
             <button onClick={() => marcarEntregado(pedido.id)} style={{ background: '#16a34a', color: '#fff', border: 'none', borderRadius: 6, padding: '6px 14px', fontWeight: 500, cursor: 'pointer' }}>
               Marcar entregado
+            </button>
+          </div>
+        ))}
+      </div>
+      <h3 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: 16 }}>Pedidos por aceptar</h3>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 20, marginBottom: 32 }}>
+        {porAceptar.length === 0 && (
+          <div style={{ color: '#64748b' }}>No hay pedidos por aceptar.</div>
+        )}
+        {porAceptar.map(pedido => (
+          <div key={pedido.id} style={{ background: '#fff', borderRadius: 10, boxShadow: '0 2px 8px #0001', padding: 16, display: 'flex', alignItems: 'center', gap: 16 }}>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: 600 }}>{pedido.cliente_nombre || pedido.cliente || 'Cliente'}</div>
+              <div style={{ color: '#2563eb', fontSize: 15 }}>{pedido.direccion}</div>
+            </div>
+            <button onClick={() => aceptarPedido(pedido.id)} style={{ background: '#f59e42', color: '#fff', border: 'none', borderRadius: 6, padding: '6px 14px', fontWeight: 500, cursor: 'pointer' }}>
+              Aceptar pedido
             </button>
           </div>
         ))}
