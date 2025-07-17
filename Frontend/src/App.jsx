@@ -21,6 +21,7 @@ import Header from './components/Header';
 import Footer from './components/Footer';
 import './styles/main.css';
 import { FaHamburger } from 'react-icons/fa';
+import RepartidorConfigPage from './pages/RepartidorConfigPage';
 
 function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -96,6 +97,11 @@ function App() {
           <Route path="/homeRepartidor" element={
             <PrivateRoute>
               <HomeRepartidorPage />
+            </PrivateRoute>
+          } />
+          <Route path="/repartidor/config" element={
+            <PrivateRoute>
+              <RepartidorConfigPage />
             </PrivateRoute>
           } />
           <Route path="/:empresaNombre/home" element={

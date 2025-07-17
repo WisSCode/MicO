@@ -22,10 +22,11 @@ class UserSerializer(serializers.ModelSerializer):
     repartidor = RepartidorRegistroSerializer(required=False)
     direccion = serializers.CharField(required=False, allow_blank=True)
     telefono = serializers.CharField(required=False, allow_blank=True)
+    profile_pic = serializers.ImageField(required=False, allow_null=True)
 
     class Meta:
         model = User
-        fields = ('id', 'name', 'email', 'password', 'role', 'telefono', 'direccion', 'empresa', 'repartidor')
+        fields = ('id', 'name', 'email', 'password', 'role', 'telefono', 'direccion', 'empresa', 'repartidor', 'profile_pic')
 
     def validate_password(self, value):
         validate_password(value)
@@ -71,7 +72,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         data['name'] = self.user.name
         data['email'] = self.user.email
         data['role'] = self.user.role
-
+        data['telefono'] = self.user.telefono
         # Si el usuario es empresa, incluir el nombre de la empresa
         if self.user.role == 'empresa':
             empresa = getattr(self.user, 'empresa', None)

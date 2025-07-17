@@ -60,11 +60,21 @@ const Header = ({ onMenuToggle }) => {
           >
             <FaBars size={24} />
           </button>
-          <Link to="/" className="ue-logo-area">
+          <button
+            className="ue-logo-area"
+            style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+            onClick={() => {
+              if (user && (user.role === 'repartidor' || user.rol === 'repartidor')) {
+                navigate('/homerepartidor');
+              } else {
+                navigate('/');
+              }
+            }}
+          >
             <span className="ue-logo-text">
               Mic <span className="ue-burger-icon"><FaHamburger /></span>
             </span>
-          </Link>
+          </button>
         </div>
         <div className="ue-header-center">
           <div className="ue-address-input">
