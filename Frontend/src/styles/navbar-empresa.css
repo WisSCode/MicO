@@ -1,0 +1,76 @@
+.empresa-navbar-sticky {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  z-index: 100;
+  background: transparent;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+.empresa-navbar-sticky .empresa-navbar {
+  width: 96vw;
+  margin: 0.7rem auto 0 auto;
+  border-radius: 1.5rem;
+  box-shadow: 0 4px 24px rgba(37,99,235,0.13);
+  pointer-events: all;
+}
+
+.empresa-navbar {
+  width: 100%;
+  background: linear-gradient(90deg, #6366f1 0%, #2563eb 100%);
+  box-shadow: 0 2px 12px rgba(37,99,235,0.08);
+  padding: 0.7rem 0;
+  margin-bottom: 2rem;
+  border-radius: 0 0 1.2rem 1.2rem;
+  margin-top: 0;
+  z-index: 10;
+  position: relative;
+}
+.empresa-navbar-list {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.empresa-navbar-list li {
+  margin: 0 2.5rem;
+}
+
+.logout-btn {
+  background: none;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  margin-left: auto;
+  margin-right: 2rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 1.2rem;
+  transition: background 0.2s;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+}
+.logout-btn:hover {
+  background: rgba(37,99,235,0.13);
+  color: #2563eb;
+}
+.empresa-navbar-list li a {
+  text-decoration: none;
+  color: #fff;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.3rem 0.2rem;
+  border-radius: 0.7rem;
+  transition: background 0.2s, color 0.2s;
+}
+.empresa-navbar-list li.active a,
+.empresa-navbar-list li a:hover {
+  color: #ffe066;
+  background: rgba(255,255,255,0.08);
+}

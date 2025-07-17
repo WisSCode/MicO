@@ -58,6 +58,8 @@ class User(AbstractBaseUser, PermissionsMixin):
 class Empresa(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='empresas')
     nombre = models.CharField(max_length=255)
+    direccion = models.CharField(max_length=500, blank=True, null=True)
+    telefono = models.CharField(max_length=20, blank=True, null=True)
     logo = models.ImageField(upload_to='logos_empresas/', blank=True, null=True)
     creado_en = models.DateTimeField(auto_now_add=True)
 

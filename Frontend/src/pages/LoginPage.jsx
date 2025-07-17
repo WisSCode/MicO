@@ -13,7 +13,7 @@ const login = async (email, password) => {
       },
     }
   );
-  localStorage.setItem('access', response.data.access);
+  localStorage.setItem('token', response.data.access);
   localStorage.setItem('refresh', response.data.refresh);
   return response.data;
 };
@@ -37,7 +37,9 @@ const LoginPage = () => {
         setPassword('');
         if (data.role === 'repartidor') {
           navigate('/homerepartidor');
-        } else {
+        } else if (data.role === 'empresa') {
+          navigate(`/${data.empresaNombre}/home`); 
+        }else {
           navigate('/homeuser');
         }
       } else {
