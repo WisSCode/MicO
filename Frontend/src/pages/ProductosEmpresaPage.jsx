@@ -61,7 +61,7 @@ const ProductosEmpresaPage = () => {
   const handleSubmit = async e => {
     e.preventDefault();
     setError('');
-    const token = localStorage.getItem('access');
+    const token = localStorage.getItem('token');
     const data = new FormData();
     data.append('nombre', form.nombre);
     data.append('descripcion', form.descripcion);
@@ -93,7 +93,7 @@ const ProductosEmpresaPage = () => {
   const handleDeleteCard = async (producto) => {
     if (!producto) return;
     if (!window.confirm('¿Seguro que deseas eliminar este producto?')) return;
-    const token = localStorage.getItem('access');
+    const token = localStorage.getItem('token');
     try {
       setLoading(true);
       await axios.delete(`http://localhost:8000/api/productos/${producto.id}/`, {
