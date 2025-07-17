@@ -142,7 +142,8 @@ class PedidoViewSet(viewsets.ModelViewSet):
         elif user.role == 'usuarionormal':
             return Pedido.objects.filter(cliente=user)
         elif user.role == 'repartidor':
-            return Pedido.objects.filter(repartidor__user=user)
+            from django.db.models import Q
+            return Pedido.objects.filter(Q(repartidor__isnull=True) | Q(repartidor__user=user))
         else:
             return Pedido.objects.none()
 
