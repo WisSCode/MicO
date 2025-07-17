@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaHamburger, FaPizzaSlice, FaFish, FaIceCream, FaLeaf, FaDrumstickBite, FaBreadSlice, FaBacon, FaHotdog, FaUtensils, FaCoffee, FaCarrot, FaStar, FaMapMarkerAlt } from 'react-icons/fa';
 import heroBg from '../assets/images/home.avif';
 import '../styles/main.css';
+import { UserContext } from '../components/UserContext';
 
 const categories = [
   { id: 1, name: 'Comida rápida', icon: <FaHamburger size={36} /> },
@@ -92,15 +93,24 @@ const HomePage = () => {
   const navigate = useNavigate();
   const [imageErrors, setImageErrors] = useState({});
   const [address, setAddress] = useState("");
+  const { user } = useContext(UserContext); // <-- Nuevo
 
   // HERO NUEVO
   const handleRestaurantClick = (restaurant) => {
-    navigate(`/company/${restaurant.companyId}/products`);
+    if (user) {
+      navigate(`/company/${restaurant.companyId}/products`);
+    } else {
+      navigate('/login'); // Redirige a login si no está autenticado
+    }
   };
 
   const handleCategoryClick = (category) => {
-    // For now, just show a message. In a real app, this would filter restaurants
-    alert(`Categoría seleccionada: ${category.name}`);
+    if (user) {
+      alert(`Categoría seleccionada: ${category.name}`);
+      // Aquí podrías navegar a la categoría si lo deseas
+    } else {
+      navigate('/login');
+    }
   };
 
   const handleImageError = (e, restaurant) => {
