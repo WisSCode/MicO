@@ -75,6 +75,32 @@ const HomeRepartidorPage = () => {
     // eslint-disable-next-line
   }, [mapPedido]);
 
+  //prueba para la geolocalización de Fredy
+  useEffect(() => {
+  // Intentar obtener la ubicación actual del repartidor al cargar
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      const { latitude, longitude } = position.coords;
+
+      const map = new maplibregl.Map({
+        container: 'mapbox-map-repartidor',
+        style: `https://api.maptiler.com/maps/streets/style.json?key=${MAPTILER_KEY}`,
+        center: [longitude, latitude],
+        zoom: 14,
+      });
+
+      // Marcador azul para el repartidor
+      new maplibregl.Marker({ color: 'blue' })
+        .setLngLat([longitude, latitude])
+        .addTo(map);
+    },
+    (error) => {
+      console.error('No se pudo obtener la ubicación del repartidor', error);
+    }
+  );
+}, []);
+
+
   const marcarEntregado = async (id) => {
     try {
       const token = localStorage.getItem('access');
