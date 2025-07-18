@@ -79,11 +79,18 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
             if empresa:
                 data['empresaNombre'] = empresa.nombre
             else:
-                # Si el usuario tiene varias empresas, toma la primera
                 empresas = getattr(self.user, 'empresas', None)
                 if empresas and empresas.exists():
                     data['empresaNombre'] = empresas.first().nombre
                 else:
                     data['empresaNombre'] = ''
+
+        # Si el usuario es repartidor, incluir el id del modelo Repartidor
+        if self.user.role == 'repartidor':
+            repartidor_obj = getattr(self.user, 'repartidor', None)
+            if repartidor_obj:
+                data['repartidor_model_id'] = repartidor_obj.id
+            else:
+                data['repartidor_model_id'] = None
 
         return data

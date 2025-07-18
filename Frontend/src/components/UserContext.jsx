@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import axios from 'axios';
 
 export const UserContext = createContext();
 
@@ -15,10 +16,26 @@ export const UserProvider = ({ children }) => {
   const [orders, setOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  const fetchOrderHistory = async (setOrders) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get('http://localhost:8000/api/pedidos/historial/', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setOrders(response.data);
+    } catch (error) {
+      console.error('Error al obtener el historial:', error);
+      setOrders([]); // O deja los pedidos como estaban
+    }
+  };
+
   useEffect(() => {
     try {
       // Load user from localStorage on app start
       const savedUser = localStorage.getItem('user');
+      if (user) {
+        fetchOrderHistory(setOrders);
+      }
       if (savedUser) {
         setUser(JSON.parse(savedUser));
       }
@@ -95,7 +112,8 @@ export const UserProvider = ({ children }) => {
     orders,
     addOrder,
     updateOrder,
-    isLoading
+    isLoading,
+    fetchOrderHistory, // (opcional, si quieres exponerlo)
   };
 
   return (

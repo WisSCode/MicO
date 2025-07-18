@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import Empresa, Producto, Pedido, ItemPedido
-from users.models import User
+from users.models import User, Repartidor
 from .models import Cart, CartItem
 
 class EmpresaSerializer(serializers.ModelSerializer):
@@ -53,7 +53,7 @@ class PedidoSerializer(serializers.ModelSerializer):
     empresa_nombre = serializers.CharField(source='empresa.nombre', read_only=True)
     cliente_nombre = serializers.CharField(source='cliente.name', read_only=True)
     repartidor_id = serializers.PrimaryKeyRelatedField(
-        queryset=User.objects.filter(role='repartidor'), source='repartidor', required=False, allow_null=True
+        queryset=Repartidor.objects.all(), source='repartidor', required=False, allow_null=True
     )
     repartidor_nombre = serializers.CharField(source='repartidor.user.name', read_only=True, default=None)
     items = ItemPedidoSerializer(many=True)
