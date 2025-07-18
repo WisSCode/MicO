@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FaCheckCircle, FaClock, FaUtensils, FaTruck, FaHome, FaArrowLeft } from 'react-icons/fa';
 import axios from 'axios';
+import { useUser } from '../components/UserContext';
 
 const OrderConfirmationPage = () => {
   const navigate = useNavigate();
@@ -29,6 +30,8 @@ const OrderConfirmationPage = () => {
         .then(res => {
           setOrder(res.data);
           setLoading(false);
+          // Refresca el historial después de cargar el pedido confirmado
+          fetchOrderHistory();
         })
         .catch(() => {
           setOrder(null);
