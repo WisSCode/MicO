@@ -221,7 +221,7 @@ const OrderHistoryPage = () => {
       <div style={{ padding: '1rem' }}>
         {filteredOrders.map((order, index) => (
           <div 
-            key={order.orderId || index} 
+            key={order.id} 
             style={{ 
               background: '#fff', 
               borderRadius: '12px', 
@@ -240,110 +240,40 @@ const OrderHistoryPage = () => {
               e.target.style.transform = 'translateY(0)';
               e.target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
             }}
-            onClick={() => navigate('/order-confirmation', { state: { order } })}
+            onClick={() => navigate('/order-confirmation', { state: { orderId: order.id } })}
           >
             {/* Order Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
               <div>
                 <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.1rem', fontWeight: 600 }}>
-                  Pedido #{order.orderId}
+                  Pedido #{order.id}
                 </h3>
-                <p style={{ margin: 0, color: '#666', fontSize: '0.9rem' }}>
-                  {new Date(order.createdAt).toLocaleDateString()} - {new Date(order.createdAt).toLocaleTimeString()}
-                </p>
-                <p style={{ margin: '0.25rem 0 0 0', color: '#999', fontSize: '0.8rem' }}>
-                  {getTotalItems(order)} {getTotalItems(order) === 1 ? 'producto' : 'productos'}
-                </p>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                {getStatusIcon(order.status)}
-                <span style={{ fontSize: '0.9rem', fontWeight: 500, color: getStatusColor(order.status) }}>
-                  {getStatusText(order.status)}
+                <span style={{ color: '#888', fontSize: '0.95rem' }}>
+                  {order.fecha_pedido
+                    ? `${new Date(order.fecha_pedido).toLocaleDateString()} - ${new Date(order.fecha_pedido).toLocaleTimeString()}`
+                    : 'Sin fecha'}
                 </span>
               </div>
-            </div>
-
-            {/* Order Items Preview */}
-            <div style={{ marginBottom: '1rem' }}>
-              {order.items?.slice(0, 3).map((item, itemIndex) => (
-                <div key={itemIndex} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
-                  <span style={{ fontSize: '0.9rem' }}>{item.quantity}x {item.name}</span>
-                  <span style={{ fontSize: '0.9rem', fontWeight: 500 }}>${item.price * item.quantity}</span>
-                </div>
-              ))}
-              {order.items?.length > 3 && (
-                <div style={{ fontSize: '0.8rem', color: '#666', fontStyle: 'italic' }}>
-                  +{order.items.length - 3} productos más...
-                </div>
-              )}
-            </div>
-
-            {/* Order Total */}
-            <div style={{ borderTop: '1px solid #e5e5e5', paddingTop: '1rem', marginBottom: '1rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600, fontSize: '1.1rem' }}>
-                <span>Total:</span>
-                <span>${order.total}</span>
+              <div style={{ fontWeight: 600, color: '#2c3e50', fontSize: '1.1rem' }}>
+                ${order.total}
               </div>
-              {order.coupon && (
-                <div style={{ fontSize: '0.9rem', color: '#27ae60', marginTop: '0.5rem' }}>
-                  Cupón aplicado: {order.coupon}
-                </div>
-              )}
             </div>
-
-            {/* Delivery Info */}
-            {order.customerInfo && (
-              <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #e5e5e5' }}>
-                <div style={{ fontSize: '0.9rem', color: '#666' }}>
-                  <div><strong>Entregar a:</strong> {order.customerInfo.name}</div>
-                  <div>{order.customerInfo.address}</div>
-                  <div>{order.customerInfo.city}, {order.customerInfo.zipCode}</div>
-                </div>
+            <div style={{ marginBottom: '0.5rem', color: '#666' }}>
+              {order.items ? order.items.length : 0} productos
+            </div>
+            <div style={{ marginBottom: '0.5rem', color: '#888' }}>
+              {order.estado}
+            </div>
+            {/* Productos del pedido */}
+            {order.items && order.items.length > 0 && (
+              <div style={{ marginTop: '0.5rem', color: '#444', fontSize: '0.97rem' }}>
+                {order.items.map((item, idx) => (
+                  <div key={idx}>
+                    {item.cantidad}x {item.producto_nombre} - ${item.precio_unitario * item.cantidad}
+                  </div>
+                ))}
               </div>
             )}
-
-            {/* Quick Actions */}
-            <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem' }}>
-              <button 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  navigate('/order-confirmation', { state: { order } });
-                }}
-                style={{ 
-                  flex: 1,
-                  padding: '0.75rem', 
-                  background: '#2c3e50', 
-                  color: '#fff',
-                  border: 'none', 
-                  borderRadius: '8px',
-                  fontSize: '0.9rem',
-                  fontWeight: 600,
-                  cursor: 'pointer'
-                }}
-              >
-                Ver detalles
-              </button>
-              {order.status !== 'delivered' && order.status !== 'completed' && (
-                <button 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigate('/order');
-                  }}
-                  style={{ 
-                    flex: 1,
-                    padding: '0.75rem', 
-                    background: '#f8f9fa', 
-                    border: '1px solid #dee2e6', 
-                    borderRadius: '8px',
-                    fontSize: '0.9rem',
-                    fontWeight: 600,
-                    cursor: 'pointer'
-                  }}
-                >
-                  Seguir pedido
-                </button>
-              )}
-            </div>
           </div>
         ))}
       </div>
