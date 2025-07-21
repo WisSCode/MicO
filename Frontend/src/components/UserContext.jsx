@@ -16,16 +16,22 @@ export const UserProvider = ({ children }) => {
   const [orders, setOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchOrderHistory = async (setOrders) => {
+  const fetchOrderHistory = async () => {
     try {
       const token = localStorage.getItem('token');
+      console.log('Obteniendo historial...');
+      console.log('Token para historial:', token);
       const response = await axios.get('http://localhost:8000/api/pedidos/historial/', {
         headers: { Authorization: `Bearer ${token}` }
       });
+      console.log('Historial obtenido:', response.data);
+      console.log('Cantidad de pedidos en historial:', response.data.length);
       setOrders(response.data);
     } catch (error) {
-      console.error('Error al obtener el historial:', error);
-      setOrders([]); // O deja los pedidos como estaban
+      console.error('Error al obtener historial:', error.response?.data || error);
+      console.error('Error status:', error.response?.status);
+      console.error('Error completo:', error);
+      setOrders([]);
     }
   };
 
@@ -34,7 +40,7 @@ export const UserProvider = ({ children }) => {
       // Load user from localStorage on app start
       const savedUser = localStorage.getItem('user');
       if (user) {
-        fetchOrderHistory(setOrders);
+        fetchOrderHistory();
       }
       if (savedUser) {
         setUser(JSON.parse(savedUser));

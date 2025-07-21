@@ -113,6 +113,22 @@ class ProductoViewSet(viewsets.ModelViewSet):
 
 class PedidoViewSet(viewsets.ModelViewSet):
 
+    @action(detail=False, methods=['get'], url_path='historial') #historial de pedidos
+    def historial(self, request):
+        user = request.user
+        if user.role == 'usuarionormal':
+            pedidos = Pedido.objects.filter(cliente=user)
+        elif user.role == 'empresa':
+            empresas = user.empresas.all()
+            pedidos = Pedido.objects.filter(empresa__in=empresas)
+        elif user.role == 'repartidor':
+            pedidos = Pedido.objects.filter(repartidor__user=user)
+        else:
+            pedidos = Pedido.objects.none()
+        
+        serializer = self.get_serializer(pedidos, many=True)
+        return Response(serializer.data)
+
     @action(detail=False, methods=['get'], url_path='ventas-semanales')
     def ventas_semanales(self, request):
         user = request.user
