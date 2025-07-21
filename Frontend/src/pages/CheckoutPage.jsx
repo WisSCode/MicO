@@ -105,6 +105,7 @@ const CheckoutPage = () => {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(res => {
+        console.log('Respuesta del backend:', res.data); // <-- Agrega esta línea
         localStorage.removeItem('cart');
         localStorage.removeItem('pendingOrder');
         navigate('/order-confirmation', { state: { orderId: res.data.id } });

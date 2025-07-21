@@ -10,6 +10,7 @@ const OrderConfirmationPage = () => {
   const [order, setOrder] = useState(null);
   const [currentStage, setCurrentStage] = useState(0);
   const [loading, setLoading] = useState(true);
+  const { fetchOrderHistory } = useUser();
 
   const orderStages = [
     { name: 'Pedido recibido', icon: FaCheckCircle, color: '#27ae60' },
@@ -24,20 +25,29 @@ const OrderConfirmationPage = () => {
     if (orderId) {
       const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
       const token = localStorage.getItem('token');
-      axios.get(`${API_BASE}/pedidos/${orderId}/`, {
+      const url = `${API_BASE}/pedidos/${orderId}/`;
+      console.log('URL que se está llamando:', url);
+      console.log('Token:', token);
+      axios.get(url, {
         headers: { Authorization: `Bearer ${token}` }
       })
         .then(res => {
+          console.log('Respuesta exitosa del pedido:', res.data);
           setOrder(res.data);
           setLoading(false);
           // Refresca el historial después de cargar el pedido confirmado
           fetchOrderHistory();
         })
-        .catch(() => {
+        .catch((error) => {
+          console.error('Error completo:', error);
+          console.error('Error response:', error.response);
+          console.error('Error status:', error.response?.status);
+          console.error('Error data:', error.response?.data);
           setOrder(null);
           setLoading(false);
         });
     } else {
+      console.log('No hay orderId en location.state:', location.state);
       setOrder(null);
       setLoading(false);
     }

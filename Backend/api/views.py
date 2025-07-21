@@ -136,6 +136,9 @@ class PedidoViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
+        print(f"Usuario autenticado: {user.id} - {user.email}")
+        print(f"Rol del usuario: {user.role}")
+
         if user.role == 'empresa':
             empresas = user.empresas.all()
             return Pedido.objects.filter(empresa__in=empresas)
