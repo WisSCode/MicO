@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import Empresa, Producto, Pedido, ItemPedido
 from users.models import User
-from .models import UbicacionRepartidor
+from .models import Cart, CartItem
 
 class EmpresaSerializer(serializers.ModelSerializer):
     class Meta:
@@ -15,17 +15,33 @@ class ProductoSerializer(serializers.ModelSerializer):
         fields = ['id', 'empresa', 'nombre', 'descripcion', 'precio', 'imagen']
         read_only_fields = ['id', 'empresa']
 
+class CartItemSerializer(serializers.ModelSerializer):
+    producto = ProductoSerializer(read_only=True)
+    producto_id = serializers.PrimaryKeyRelatedField(queryset=Producto.objects.all(), source='producto', write_only=True)
+
+    class Meta:
+        model = CartItem
+        fields = ['id', 'producto', 'producto_id', 'quantity', 'added_at']
+
+class CartSerializer(serializers.ModelSerializer):
+    items = CartItemSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Cart
+        fields = ['id', 'user', 'created_at', 'updated_at', 'items']
+
 class ItemPedidoSerializer(serializers.ModelSerializer):
     producto_id = serializers.PrimaryKeyRelatedField(
-        queryset=Producto.objects.all(), source='producto'
+        queryset=Producto.objects.all(), source='producto', write_only=True
     )
     producto_nombre = serializers.CharField(source='producto.nombre', read_only=True)
+    precio_unitario = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
     total = serializers.SerializerMethodField()
 
     class Meta:
         model = ItemPedido
         fields = ['id', 'producto_id', 'producto_nombre', 'cantidad', 'precio_unitario', 'total']
-        read_only_fields = ['id', 'producto_nombre', 'total']
+        read_only_fields = ['id', 'producto_nombre', 'precio_unitario', 'total']
 
     def get_total(self, obj):
         return obj.get_total()
@@ -55,7 +71,8 @@ class PedidoSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         items_data = validated_data.pop('items')
-        pedido = Pedido.objects.create(cliente=self.context['request'].user, **validated_data)
+        cliente = validated_data.pop('cliente', self.context['request'].user)
+        pedido = Pedido.objects.create(cliente=cliente, **validated_data)
         total_pedido = 0
 
         for item_data in items_data:

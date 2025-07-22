@@ -1,27 +1,37 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FaHamburger, FaEye, FaEyeSlash } from "react-icons/fa";
 import axios from 'axios';
+import { UserContext } from '../components/UserContext';
 
 const login = async (email, password) => {
   const response = await axios.post(
     'http://localhost:8000/user/login/',
-    { email, password }, // Esto es el body (data)
+    { email, password },
     {
       headers: {
         'Content-Type': 'application/json',
       },
     }
   );
+  console.log(response.data);
   localStorage.setItem('token', response.data.access);
   localStorage.setItem('refresh', response.data.refresh);
+  localStorage.setItem('name', response.data.name);
+  localStorage.setItem('id', response.data.id);
+  localStorage.setItem('email', response.data.email);
+  localStorage.setItem('role', response.data.role);
+  localStorage.setItem('telefono', response.data.telefono);
   return response.data;
 };
 
 const LoginPage = () => {
+  const { login: loginContext } = useContext(UserContext);
   const [email, setEmail] = useState('');
+  // const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [msg, setMsg] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -35,12 +45,19 @@ const LoginPage = () => {
       if (data.access && data.refresh && data.role) {
         setEmail('');
         setPassword('');
+        loginContext({
+          id: data.id,
+          name: data.name,
+          email: data.email,
+          role: data.role,
+          telefono: data.telefono
+        }); // Aquí pasas el nombre al contexto
         if (data.role === 'repartidor') {
           navigate('/homerepartidor');
         } else if (data.role === 'empresa') {
           navigate(`/${data.empresaNombre}/home`); 
-        }else {
-          navigate('/homeuser');
+        } else {
+          navigate('/');
         }
       } else {
         setError('Error al iniciar sesión. Intenta de nuevo.');
@@ -53,19 +70,41 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="auth-page" style={{ background: '#e3f0ff' }}>
-      <div className="auth-container">
-        <span className="auth-logo"><FaHamburger size={48} /></span>
-        <h2 className="auth-title">Inicia sesión en MICO</h2>
-        {error && <p className="auth-error">{error}</p>}
-        <form onSubmit={handleSubmit} className="auth-form">
+    <div className="login-page" style={{background:'#f5f5f5',minHeight:'100vh'}}>
+      <div className="login-container">
+        {/* Header */}
+        <div className="login-header">
+          <div className="logo-container" style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
+            <span className="logo-text" style={{fontSize:'2.2rem',fontWeight:700}}>Mic</span>
+            <span className="burger-icon"><FaHamburger size={40} /></span>
+          </div>
+          <p className="app-subtitle">Plataforma de Gestión de Entregas</p>
+        </div>
+        {msg && (
+          <div style={{
+            margin:'1rem 0',
+            color: 'var(--accent-green)',
+            background: 'rgba(16,185,129,0.08)',
+            borderRadius:12,
+            padding:'0.7rem 1.2rem',
+            fontWeight:500,
+            fontSize:'1.05rem',
+            textAlign:'center',
+            transition:'all 0.3s',
+            animation:'fadeIn 0.5s',
+          }}>{msg}</div>
+        )}
+        {/* Login Form */}
+        <form onSubmit={handleSubmit} className="login-form">
           <div className="form-group">
+            <label>Correo electrónico</label>
             <input
               type="email"
-              placeholder="Correo electrónico"
+              placeholder="Ingresa tu correo"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              style={{transition:'box-shadow 0.2s',boxShadow:email? '0 2px 8px 0 rgba(37,99,235,0.08)':'none'}}
             />
           </div>
           <div className="form-group relative">
@@ -75,6 +114,7 @@ const LoginPage = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              style={{transition:'box-shadow 0.2s',boxShadow:password? '0 2px 8px 0 rgba(37,99,235,0.08)':'none'}}
             />
             <button
               type="button"
@@ -87,13 +127,13 @@ const LoginPage = () => {
             </button>
           </div>
           {error && <div className="auth-error">{error}</div>}
-          <button type="submit" className="btn-primary full-width" disabled={loading}>
+          <button type="submit" className="login-button" disabled={loading}>
             {loading ? 'Ingresando...' : 'Ingresar'}
           </button>
         </form>
         <div className="auth-footer">
           <p>
-            ¿No tienes cuenta? <Link to="/register">Regístrate</Link>
+            ¿No tienes cuenta? <Link to="/register">Regístrate aquí</Link>
           </p>
         </div>
       </div>

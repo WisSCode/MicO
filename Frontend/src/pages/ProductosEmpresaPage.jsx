@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import StickyEmpresaNavbar from '../components/StickyEmpresaNavbar';
 import { FaSearch, FaBoxOpen, FaEdit, FaTrash } from 'react-icons/fa';
 import { useParams } from 'react-router-dom';
 import '../styles/empresa-home.css';
@@ -61,7 +60,7 @@ const ProductosEmpresaPage = () => {
   const handleSubmit = async e => {
     e.preventDefault();
     setError('');
-    const token = localStorage.getItem('access');
+    const token = localStorage.getItem('token');
     const data = new FormData();
     data.append('nombre', form.nombre);
     data.append('descripcion', form.descripcion);
@@ -93,7 +92,7 @@ const ProductosEmpresaPage = () => {
   const handleDeleteCard = async (producto) => {
     if (!producto) return;
     if (!window.confirm('¿Seguro que deseas eliminar este producto?')) return;
-    const token = localStorage.getItem('access');
+    const token = localStorage.getItem('token');
     try {
       setLoading(true);
       await axios.delete(`http://localhost:8000/api/productos/${producto.id}/`, {
@@ -110,7 +109,6 @@ const ProductosEmpresaPage = () => {
 
   return (
     <div className="empresa-home">
-      <StickyEmpresaNavbar />
       <div className="empresa-header" style={{gap: '1.5rem', flexWrap: 'wrap'}}>
         <span className="empresa-nombre"><FaBoxOpen style={{marginRight:8}}/> Productos de la Empresa</span>
         <div style={{position:'relative', minWidth:220}}>

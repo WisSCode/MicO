@@ -1,0 +1,70 @@
+.apple-footer {
+  width: 100%;
+  min-height: 90px;
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 -2px 16px 0 rgba(0,0,0,0.04);
+  padding: 2.5rem 0 1.5rem 0;
+  /* margin-top: 3rem; */
+  display: flex;
+  align-items: flex-end;
+  position: relative;
+  z-index: 100;
+}
+.footer-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 2rem;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.footer-brand {
+  font-weight: 700;
+  color: #111;
+  font-size: 1.2rem;
+  letter-spacing: -0.5px;
+}
+.footer-links {
+  display: flex;
+  gap: 2.5rem;
+}
+.footer-links a {
+  color: var(--gray-600);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 1.08rem;
+  transition: color 0.2s;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+}
+.footer-links a:hover {
+  color: var(--primary-blue);
+  background: var(--primary-blue-contrast);
+}
+@media (max-width: 900px) {
+  .footer-content {
+    flex-direction: column;
+    align-items: center;
+    gap: 1.2rem;
+    padding: 0 1rem;
+  }
+  .footer-links {
+    gap: 1.2rem;
+  }
+}
+
+/* Sticky footer for short pages */
+body, #root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+main {
+  flex: 1 0 auto;
+}
+.apple-footer {
+  flex-shrink: 0;
+} 

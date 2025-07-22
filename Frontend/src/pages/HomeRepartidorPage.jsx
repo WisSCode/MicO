@@ -3,6 +3,9 @@ import axios from 'axios';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import '../styles/repartidor-home.css';
+import { FaCog } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
+
 
 const MAPTILER_KEY = 'HGPx4i0Pm39GPzeBQ2Q0';
 
@@ -11,6 +14,7 @@ const HomeRepartidorPage = () => {
   const [pedidos, setPedidos] = useState([]);
   const [mapPedido, setMapPedido] = useState(null);
   const [mapInstance, setMapInstance] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchPedidos = async () => {
@@ -146,8 +150,29 @@ const HomeRepartidorPage = () => {
 
   return (
     <div className="repartidor-home" style={{ padding: '2rem', maxWidth: 900, margin: '0 auto' }}>
-      <h2 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: 24 }}>Panel de Repartidor</h2>
-
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
+        <h2 style={{ fontSize: '2rem', fontWeight: 700, margin: 0 }}>Panel de Repartidor</h2>
+        <button
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            background: '#f1f5f9',
+            color: '#2563eb',
+            border: 'none',
+            borderRadius: 8,
+            padding: '8px 16px',
+            fontWeight: 600,
+            fontSize: '1rem',
+            cursor: 'pointer',
+            boxShadow: '0 2px 8px #0001'
+          }}
+          onClick={() => navigate('/repartidor/config')}
+        >
+          <FaCog style={{ fontSize: 18 }} />
+          Información General
+        </button>
+      </div>
       <div style={{ display: 'flex', gap: 24, marginBottom: 32 }}>
         <div style={{ flex: 1, background: '#e0f2fe', borderRadius: 12, padding: 16, textAlign: 'center' }}>
           <div style={{ fontSize: 32, fontWeight: 700 }}>{stats.total}</div>

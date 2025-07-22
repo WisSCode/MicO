@@ -25,7 +25,7 @@ urlpatterns = [
     path('user/', include('users.urls')),
     path('api/', include('api.urls')),
     path('', lambda request: HttpResponse("Bienvenido a la API de MicO"), name='home'),
-]
+]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 # Servir archivos media en desarrollo
 if settings.DEBUG:

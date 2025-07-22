@@ -1,17 +1,10 @@
 from django.db import models
-from users.models import User, Empresa, Repartidor
-from django.contrib.auth.models import User
+from users.models import User, Empresa, Repartidor 
+from django.contrib.auth import get_user_model
 
-class Producto(models.Model):
-    empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name='productos')
-    nombre = models.CharField(max_length=255)
-    descripcion = models.TextField(blank=True)
-    precio = models.DecimalField(max_digits=10, decimal_places=2)
-    imagen = models.ImageField(upload_to='productos/', blank=True, null=True)
 
-    def __str__(self):
-        return self.nombre
 
+User = get_user_model()
 class Pedido(models.Model):
     ESTADOS = [
         ('En proceso', 'En proceso'),
@@ -36,6 +29,27 @@ class Pedido(models.Model):
         self.save(update_fields=['total'])
         return total
 
+class Cart(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='carts')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+class CartItem(models.Model):
+    cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name='items')
+    producto = models.ForeignKey('Producto', on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(default=1)
+    added_at = models.DateTimeField(auto_now_add=True)
+
+class Producto(models.Model):
+    empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name='productos')
+    nombre = models.CharField(max_length=255)
+    descripcion = models.TextField(blank=True)
+    precio = models.DecimalField(max_digits=10, decimal_places=2)
+    imagen = models.ImageField(upload_to='productos/', blank=True, null=True)
+
+    def __str__(self):
+        return self.nombre
+    
 class ItemPedido(models.Model):
     pedido = models.ForeignKey(Pedido, on_delete=models.CASCADE, related_name='items')
     producto = models.ForeignKey(Producto, on_delete=models.CASCADE, related_name='items_pedido')

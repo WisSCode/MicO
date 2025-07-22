@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { fetchEmpresaActual } from '../utils/empresa';
 import axios from 'axios';
 import { FaClock, FaCheck, FaUtensils, FaBoxOpen, FaChartBar } from 'react-icons/fa';
-import StickyEmpresaNavbar from '../components/StickyEmpresaNavbar';
 import { useParams } from 'react-router-dom';
 import '../styles/empresa-home.css';
 
@@ -75,7 +74,6 @@ const HomeEmpresaPage = () => {
 
   return (
     <div className="empresa-home">
-      <StickyEmpresaNavbar />
       {/* Header empresa */}
       <div className="empresa-header">
         {empresa && empresa.logo ? (
