@@ -62,7 +62,7 @@ class ItemPedido(models.Model):
     def get_total(self):
         return self.cantidad * self.precio_unitario
     
-    class UbicacionRepartidor(models.Model):
+class UbicacionRepartidor(models.Model):
     repartidor = models.ForeignKey(User, on_delete=models.CASCADE)
     latitud = models.DecimalField(max_digits=9, decimal_places=6)
     longitud = models.DecimalField(max_digits=9, decimal_places=6)
