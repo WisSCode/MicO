@@ -1,12 +1,6 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
-<<<<<<< HEAD
-from .views import EmpresaViewSet, ProductoViewSet, PedidoViewSet
-from .views import GuardarUbicacionRepartidor
-
-=======
 from .views import EmpresaViewSet, ProductoViewSet, PedidoViewSet, CartViewSet
->>>>>>> upstream/samuel
 
 router = DefaultRouter()
 router.register(r'empresas', EmpresaViewSet)
