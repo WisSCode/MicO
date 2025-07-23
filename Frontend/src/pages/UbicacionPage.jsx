@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import maplibregl from 'maplibre-gl';
+import '../styles/ubicacion.css';
 
 const UbicacionPage = () => {
   const mapRef = useRef(null);
@@ -10,8 +11,8 @@ const UbicacionPage = () => {
   const [inputLat, setInputLat] = useState('');
   const [inputLng, setInputLng] = useState('');
   const [error, setError] = useState('');
+  const [direccionConfirmada, setDireccionConfirmada] = useState(null);
 
-  // Obtener posición actual y llenar inputs
   const obtenerUbicacion = () => {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
@@ -27,8 +28,7 @@ const UbicacionPage = () => {
     );
   };
 
-  // Validar e ingresar coordenadas manuales
-  const ingresarCoordenadas = () => {
+  const validarCoordenadas = () => {
     const lat = parseFloat(inputLat);
     const lng = parseFloat(inputLng);
 
@@ -38,14 +38,27 @@ const UbicacionPage = () => {
       lng < -180 || lng > 180
     ) {
       setError('Las coordenadas ingresadas no son válidas.');
-      return;
+      return null;
     }
 
-    setCoordenadas({ lat, lng });
-    setError('');
+    return { lat, lng };
   };
 
-  // Eliminar el mensaje de error después de 3 segundos si hay error
+  const mostrarUbicacionIngresada = () => {
+    const coords = validarCoordenadas();
+    if (coords) {
+      setCoordenadas(coords);
+      setError('');
+    }
+  };
+
+  const usarComoDireccion = () => {
+    if (coordenadas) {
+      setDireccionConfirmada(coordenadas);
+      console.log('Dirección confirmada:', coordenadas); // Aquí podrías guardar en una API o estado global
+    }
+  };
+
   useEffect(() => {
     if (error) {
       const timer = setTimeout(() => setError(''), 3000);
@@ -53,7 +66,6 @@ const UbicacionPage = () => {
     }
   }, [error]);
 
-  // Inicializar mapa cuando se tengan coordenadas
   useEffect(() => {
     if (!coordenadas || !mapRef.current) return;
 
@@ -84,19 +96,19 @@ const UbicacionPage = () => {
         </p>
       )}
 
+      {direccionConfirmada && (
+        <p style={{ textAlign: 'center', color: 'green', fontWeight: 'bold' }}>
+          Dirección confirmada: {direccionConfirmada.lat.toFixed(6)}, {direccionConfirmada.lng.toFixed(6)}
+        </p>
+      )}
+
       {error && <p style={{ color: 'red', textAlign: 'center' }}>{error}</p>}
 
       <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', marginBottom: '1rem' }}>
         <button onClick={obtenerUbicacion}>Obtener posición actual</button>
       </div>
 
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          ingresarCoordenadas();
-        }}
-        style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}
-      >
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
         <input
           type="text"
           placeholder="Latitud"
@@ -109,8 +121,9 @@ const UbicacionPage = () => {
           value={inputLng}
           onChange={(e) => setInputLng(e.target.value)}
         />
-        <button type="submit">Ingresar posición manual</button>
-      </form>
+        <button onClick={mostrarUbicacionIngresada}>Ver ubicación ingresada</button>
+        <button onClick={usarComoDireccion} disabled={!coordenadas}>Usar como dirección de mi pedido</button>
+      </div>
 
       <div
         ref={mapRef}
