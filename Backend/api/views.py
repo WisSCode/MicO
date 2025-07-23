@@ -1,6 +1,7 @@
 
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from django.utils import timezone
 from datetime import timedelta
 from rest_framework import viewsets
@@ -8,6 +9,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied
 from .models import Empresa, Producto, Pedido, Cart, CartItem
 from .serializers import EmpresaSerializer, ProductoSerializer, PedidoSerializer, CartSerializer
+from .models import UbicacionRepartidor
+from .serializers import UbicacionRepartidorSerializer
+
 
 class CartViewSet(viewsets.ModelViewSet):
     queryset = Cart.objects.all()

@@ -97,12 +97,17 @@ const Header = ({ onMenuToggle }) => {
         </div>
         <div className="ue-header-center">
           {user && user.role === 'usuarionormal' && (
-            <div className="ue-address-input">
-              <FaMapMarkerAlt style={{marginRight:6}} />
-              <span>Ingresa la dirección de entrega</span>
-              <span className="ue-address-caret">▼</span>
-            </div>
-          )}
+          <div
+            className="ue-address-input"
+            onClick={() => navigate('/ubicacion')}
+            style={{ cursor: 'pointer' }}
+          >
+            <FaMapMarkerAlt style={{ marginRight: 6 }} />
+            <span>Ingresa la dirección de entrega</span>
+            <span className="ue-address-caret">▼</span>
+          </div>
+        )}
+
         </div>
         <div className="ue-header-right">
           {user ? (
