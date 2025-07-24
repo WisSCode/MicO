@@ -21,11 +21,11 @@ const HamburgerMenu = ({ isOpen, onToggle }) => {
   ];
 
   const menuItems = [
-    { path: '/', icon: FaHome, label: 'Inicio' },
-    { path: '/cart', icon: FaShoppingCart, label: 'Carrito' },
-    { path: '/order', icon: FaListAlt, label: 'Estado del pedido' },
-    { path: '/order-history', icon: FaHistory, label: 'Historial de pedidos' },
-  ];
+    { path: '/', icon: FaHome, label: 'Inicio', roles: ['usuarionormal', 'admin'] },
+    { path: '/cart', icon: FaShoppingCart, label: 'Carrito', roles: ['usuarionormal'] },
+    { path: '/order', icon: FaListAlt, label: 'Estado del pedido', roles: ['usuarionormal'] },
+    { path: '/order-history', icon: FaHistory, label: 'Historial de pedidos', roles: ['usuarionormal'] },
+  ].filter(item => !item.roles || !user || item.roles.includes(user.role));
 
   return (
     <>

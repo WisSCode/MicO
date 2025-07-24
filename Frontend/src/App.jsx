@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import PrivateRoute from './components/PrivateRoute';
+import RoleBasedRoute from './components/RoleBasedRoute';
 import HomePage from './pages/HomePage';
 import HomeRepartidorPage from './pages/HomeRepartidorPage';
 import HomeEmpresaPage from './pages/HomeEmpresaPage';
@@ -89,39 +90,94 @@ function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
-          <Route path="/homeRepartidor" element={
-            <PrivateRoute>
-              <HomeRepartidorPage />
-            </PrivateRoute>
-          } />
-          <Route path="/repartidor/config" element={
-            <PrivateRoute>
-              <RepartidorConfigPage />
-            </PrivateRoute>
-          } />
-          <Route path="/:empresaNombre/home" element={
-            <PrivateRoute>
-              <HomeEmpresaPage />
-            </PrivateRoute>
-          } />
-          <Route path="/:empresaNombre/config" element={
-            <PrivateRoute>
-              <EmpresaConfigPage />
-            </PrivateRoute>
-          } />
-          <Route path="/:empresaNombre/productos" element={
-            <PrivateRoute>
-              <ProductosEmpresaPage />
-            </PrivateRoute>
-          } />
-            <Route path="/order" element={<OrderPage />} />
-            <Route path="/order-history" element={<OrderHistoryPage />} />
+            
+            {/* Rutas para Repartidores */}
+            <Route path="/homeRepartidor" element={
+              <RoleBasedRoute allowedRoles={['repartidor']}>
+                <HomeRepartidorPage />
+              </RoleBasedRoute>
+            } />
+            <Route path="/repartidor/config" element={
+              <RoleBasedRoute allowedRoles={['repartidor']}>
+                <RepartidorConfigPage />
+              </RoleBasedRoute>
+            } />
+            
+            {/* Rutas para Empresas */}
+            <Route path="/:empresaNombre/home" element={
+              <RoleBasedRoute allowedRoles={['empresa']}>
+                <HomeEmpresaPage />
+              </RoleBasedRoute>
+            } />
+            <Route path="/:empresaNombre/config" element={
+              <RoleBasedRoute allowedRoles={['empresa']}>
+                <EmpresaConfigPage />
+              </RoleBasedRoute>
+            } />
+            <Route path="/:empresaNombre/productos" element={
+              <RoleBasedRoute allowedRoles={['empresa']}>
+                <ProductosEmpresaPage />
+              </RoleBasedRoute>
+            } />
+            
+            {/* Rutas para Usuarios Normales */}
+            <Route path="/order" element={
+              <RoleBasedRoute allowedRoles={['usuarionormal']}>
+                <OrderPage />
+              </RoleBasedRoute>
+            } />
+            <Route path="/order-history" element={
+              <RoleBasedRoute allowedRoles={['usuarionormal']}>
+                <OrderHistoryPage />
+              </RoleBasedRoute>
+            } />
+            <Route path="/cart" element={
+              <RoleBasedRoute allowedRoles={['usuarionormal']}>
+                <CartPage />
+              </RoleBasedRoute>
+            } />
+            <Route path="/checkout" element={
+              <RoleBasedRoute allowedRoles={['usuarionormal']}>
+                <CheckoutPage />
+              </RoleBasedRoute>
+            } />
+            <Route path="/order-confirmation" element={
+              <RoleBasedRoute allowedRoles={['usuarionormal']}>
+                <OrderConfirmationPage />
+              </RoleBasedRoute>
+            } />
+            
+            {/* Rutas públicas o accesibles para múltiples roles */}
             <Route path="/:empresaNombre/products" element={<CompanyProductsPage />} />
             <Route path="/product/:productId" element={<ProductDetailPage />} />
-            <Route path="/cart" element={<CartPage />} />
-            <Route path="/checkout" element={<CheckoutPage />} />
-            <Route path="/order-confirmation" element={<OrderConfirmationPage />} />
-            <Route path="/ubicacion" element={<UbicacionPage />} />
+            <Route path="/ubicacion" element={
+              <PrivateRoute>
+                <UbicacionPage />
+              </PrivateRoute>
+            } />
+            
+            {/* Ruta catch-all para rutas no encontradas */}
+            <Route path="*" element={
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                height: '60vh',
+                textAlign: 'center',
+                color: '#666'
+              }}>
+                <h2>Página no encontrada</h2>
+                <p>La ruta que buscas no existe o no tienes permisos para acceder a ella.</p>
+                <button 
+                  className="btn-primary" 
+                  onClick={() => window.location.href = '/'}
+                  style={{ marginTop: '1rem' }}
+                >
+                  Ir al inicio
+                </button>
+              </div>
+            } />
           </Routes>
         </main>
         <Footer />

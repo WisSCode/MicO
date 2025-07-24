@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useUser } from './UserContext';
-import { FaBars, FaMapMarkerAlt, FaHamburger, FaShoppingCart } from 'react-icons/fa';
+import { FaBars, FaMapMarkerAlt, FaHamburger, FaShoppingCart, FaCog } from 'react-icons/fa';
 import axios from 'axios';
 import AddressSelector from './AddressSelector';
 import './Header.css';
@@ -85,24 +85,27 @@ const Header = ({ onMenuToggle }) => {
     <header className="ue-header">
       <div className="ue-header-content">
         <div className="ue-header-left">
-          <button 
-            className="ue-hamburger-btn"
-            aria-label="Menú"
-            onClick={handleMenuClick}
-            style={{
-              background: 'none',
-              border: 'none',
-              padding: '0.3rem 0.7rem 0.3rem 0.1rem',
-              borderRadius: '50%',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              transition: 'background 0.15s',
-              color: '#111'
-            }}
-          >
-            <FaBars size={24} color="#111" />
-          </button>
+          {/* Solo mostrar menú hamburguesa para usuarios normales */}
+          {(!user || user.role === 'usuarionormal') && (
+            <button 
+              className="ue-hamburger-btn"
+              aria-label="Menú"
+              onClick={handleMenuClick}
+              style={{
+                background: 'none',
+                border: 'none',
+                padding: '0.3rem 0.7rem 0.3rem 0.1rem',
+                borderRadius: '50%',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                transition: 'background 0.15s',
+                color: '#111'
+              }}
+            >
+              <FaBars size={24} color="#111" />
+            </button>
+          )}
           {user ? (
             user.role === 'empresa' ? (
               <Link to={`/${user.empresaNombre || empresaNombre}/home`} className="ue-logo-area">
@@ -110,14 +113,14 @@ const Header = ({ onMenuToggle }) => {
                   Mic <span className="ue-burger-icon"><FaHamburger /></span>
                 </span>
               </Link>
-            ) : user.role === 'cliente' ? (
+            ) : user.role === 'usuarionormal' ? (
               <Link to="/" className="ue-logo-area">
                 <span className="ue-logo-text">
                   Mic <span className="ue-burger-icon"><FaHamburger /></span>
                 </span>
               </Link>
             ) : user.role === 'repartidor' ? (
-              <Link to="/homerepartidor" className="ue-logo-area">
+              <Link to="/homeRepartidor" className="ue-logo-area">
                 <span className="ue-logo-text">
                   Mic <span className="ue-burger-icon"><FaHamburger /></span>
                 </span>
@@ -164,8 +167,16 @@ const Header = ({ onMenuToggle }) => {
                   </Link>
                 </nav>
               )}
-              {/* Solo mostrar el carrito si el usuario NO es repartidor */}
-              {user.role !== 'repartidor' && (
+              {user.role === 'repartidor' && (
+                <nav className="repartidor-navbar" style={{display:'flex',gap:'1rem',alignItems:'center',marginRight:'1.5rem',background:'none'}}>
+                  <Link to="/repartidor/config" className="repartidor-navbar-link" style={{background:'#f3f4f6',borderRadius:'999px',padding:'0.5rem 1.2rem',color:'#ff8000',fontWeight:'500',textDecoration:'none',fontSize:'1rem',display:'flex',alignItems:'center',height:'40px'}}>
+                    <FaCog size={16} />
+                    Perfil 
+                  </Link>
+                </nav>
+              )}
+              {/* Solo mostrar el carrito si el usuario NO es repartidor ni empresa */}
+              {user.role !== 'repartidor' && user.role !== 'empresa' && (
                 <button className="ue-cart-btn" 
                   onClick={handleCartClick}
                   style={{

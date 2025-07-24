@@ -248,6 +248,14 @@
 .ue-address-input svg {
   color: #f97316 !important;
 }
+.repartidor-navbar-link:hover {
+  background: #fed7aa !important;
+  color: #ea580c !important;
+}
+.empresa-navbar-link:hover {
+  background: #fed7aa !important;
+  color: #ea580c !important;
+}
 @media (max-width: 900px) {
   .ue-header-content {
     padding: 0 0.7rem;

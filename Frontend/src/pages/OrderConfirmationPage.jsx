@@ -1,23 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { FaCheckCircle, FaClock, FaUtensils, FaTruck, FaHome, FaArrowLeft } from 'react-icons/fa';
-import axios from 'axios';
+import { FaCheckCircle, FaArrowLeft } from 'react-icons/fa';
 import { useUser } from '../components/UserContext';
 
 const OrderConfirmationPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [orders, setOrders] = useState([]);
-  const [currentStage, setCurrentStage] = useState(0);
   const [loading, setLoading] = useState(true);
   const { fetchOrderHistory } = useUser();
-
-  const orderStages = [
-    { name: 'Pedido recibido', icon: FaCheckCircle, color: '#27ae60' },
-    { name: 'Preparando', icon: FaUtensils, color: '#f39c12' },
-    { name: 'En camino', icon: FaTruck, color: '#3498db' },
-    { name: 'Entregado', icon: FaHome, color: '#27ae60' }
-  ];
 
 useEffect(() => {
     setLoading(true);
@@ -46,21 +37,6 @@ useEffect(() => {
   useEffect(() => {
     fetchOrderHistory();
   }, []);
-
-  useEffect(() => {
-    if (!orders || orders.length === 0) return;
-    // Simular avance de etapas para todos los pedidos
-    const interval = setInterval(() => {
-      setCurrentStage(prev => {
-        if (prev < orderStages.length - 1) {
-          return prev + 1;
-        }
-        clearInterval(interval);
-        return prev;
-      });
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [orders]);
 
   if (loading) {
     return (
@@ -178,54 +154,6 @@ useEffect(() => {
                 ) : (
                   'No especificada'
                 )}
-              </div>
-            </div>
-            {/* Order Tracking */}
-            <div style={{ marginTop: '1.5rem' }}>
-              <h4 style={{ fontWeight: 600, marginBottom: '1rem' }}>Seguimiento del pedido</h4>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                {orderStages.map((stage, index) => {
-                  const IconComponent = stage.icon;
-                  const isActive = index <= currentStage;
-                  const isCompleted = index < currentStage;
-                  return (
-                    <div key={index} style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                      <div style={{
-                        width: '40px',
-                        height: '40px',
-                        borderRadius: '50%',
-                        background: isCompleted ? stage.color : isActive ? stage.color : '#e5e5e5',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: isActive ? '#fff' : '#999',
-                        transition: 'all 0.3s ease'
-                      }}>
-                        <IconComponent size={20} />
-                      </div>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ 
-                          fontWeight: isActive ? 600 : 400, 
-                          color: isActive ? '#2c3e50' : '#999',
-                          fontSize: '1rem'
-                        }}>
-                          {stage.name}
-                        </div>
-                        {isActive && index < orderStages.length - 1 && (
-                          <div style={{ 
-                            fontSize: '0.9rem', 
-                            color: '#666', 
-                            marginTop: '0.25rem' 
-                          }}>
-                            {index === 0 && 'Tu pedido ha sido recibido y confirmado'}
-                            {index === 1 && 'El restaurante está preparando tu comida'}
-                            {index === 2 && 'Un repartidor está en camino con tu pedido'}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
               </div>
             </div>
           </div>

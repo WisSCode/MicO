@@ -1,5 +1,6 @@
 import React, { useState, useContext, useEffect } from 'react';
 import AddToCartModal from '../components/AddToCartModal';
+import RoleRedirect from '../components/RoleRedirect';
 import { addToCart } from '../utils/cart';
 import { useNavigate } from 'react-router-dom';
 import { FaStar, FaMapMarkerAlt, FaPhoneAlt, FaStore } from 'react-icons/fa';
@@ -91,6 +92,7 @@ const HomePage = () => {
 
   return (
     <div className="ue2-home" style={{padding:0,margin:0}}>
+      <RoleRedirect />
       {/* HERO ILUSTRADO FULL WIDTH */}
       <section
         style={{

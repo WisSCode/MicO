@@ -3,7 +3,7 @@ import axios from 'axios';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import '../styles/repartidor-home.css';
-import { FaCog, FaMapMarkerAlt, FaRoute, FaEye, FaCheck, FaTimes, FaDollarSign, FaPhone, FaCalendarAlt, FaCreditCard, FaBox, FaUser } from 'react-icons/fa';
+import { FaMapMarkerAlt, FaRoute, FaEye, FaCheck, FaTimes, FaDollarSign, FaPhone, FaCalendarAlt, FaCreditCard, FaBox, FaUser } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 
 
@@ -756,26 +756,6 @@ const HomeRepartidorPage = () => {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
         <h2 style={{ fontSize: '2rem', fontWeight: 700, margin: 0 }}>Panel de Repartidor</h2>
-        <button
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-            background: '#f1f5f9',
-            color: '#2563eb',
-            border: 'none',
-            borderRadius: 8,
-            padding: '8px 16px',
-            fontWeight: 600,
-            fontSize: '1rem',
-            cursor: 'pointer',
-            boxShadow: '0 2px 8px #0001'
-          }}
-          onClick={() => navigate('/repartidor/config')}
-        >
-          <FaCog style={{ fontSize: 18 }} />
-          Información General
-        </button>
       </div>
 
       {/* Estadísticas */}

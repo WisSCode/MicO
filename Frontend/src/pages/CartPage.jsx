@@ -230,16 +230,15 @@ const CartPage = () => {
                   <button
                     onClick={() => updateQuantity(item.producto.id, item.quantity - 1)}
                     style={{ 
-                      background: item.quantity <= 1 ? '#eee' : '#f8f9fa', 
-                      border: '1px solid #dee2e6', 
+                      background: item.quantity <= 1 ? '#eee' : '#ffffffff', 
                       borderRadius: '50%', 
-                      width: '28px', 
                       height: '28px', 
                       display: 'flex', 
                       alignItems: 'center', 
                       justifyContent: 'center',
                       cursor: item.quantity <= 1 ? 'not-allowed' : 'pointer',
-                      opacity: item.quantity <= 1 ? 0.5 : 1
+                      opacity: item.quantity <= 1 ? 0.5 : 1,
+                      color: '#111'
                     }}
                     disabled={item.quantity <= 1}
                   >
@@ -249,15 +248,14 @@ const CartPage = () => {
                   <button
                     onClick={() => updateQuantity(item.producto.id, item.quantity + 1)}
                     style={{ 
-                      background: '#f8f9fa', 
-                      border: '1px solid #dee2e6', 
+                      background: '#ffffffff', 
                       borderRadius: '50%', 
-                      width: '28px', 
                       height: '28px', 
                       display: 'flex', 
                       alignItems: 'center', 
                       justifyContent: 'center',
-                      cursor: 'pointer'
+                      cursor: 'pointer',
+                      color: '#111'
                     }}
                   >
                     <FaPlus size={10} />
@@ -282,8 +280,6 @@ const CartPage = () => {
           </div>
         ))}
       </div>
-
-      {/* Se eliminó la sección de cupones */}
 
       <div className="cart-summary" style={{ background: '#fff', padding: '1rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', fontWeight: 600, fontSize: '1.1rem' }}>
