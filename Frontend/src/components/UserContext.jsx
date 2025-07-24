@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import axios from 'axios';
 
-const UserContext = createContext();
+export const UserContext = createContext();
 
 export const useUser = () => {
   const context = useContext(UserContext);
@@ -15,24 +16,54 @@ export const UserProvider = ({ children }) => {
   const [orders, setOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Interceptor global para manejar errores de autenticación
+  useEffect(() => {
+    const interceptor = axios.interceptors.response.use(
+      response => response,
+      error => {
+        if (error.response?.status === 401) {
+          // Token expirado o inválido - limpiar sesión
+          logout();
+          if (window.location.pathname !== '/login') {
+            window.location.href = '/login';
+          }
+        }
+        return Promise.reject(error);
+      }
+    );
+    return () => axios.interceptors.response.eject(interceptor);
+  }, []);
+
+  // Función para obtener historial de pedidos del backend
+  const fetchOrderHistory = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const response = await axios.get('http://localhost:8000/api/pedidos/historial/', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setOrders(response.data);
+    } catch (error) {
+      console.error('Error al obtener historial:', error);
+      setOrders([]);
+    }
+  };
+
+  // Cargar usuario desde localStorage al iniciar la app
   useEffect(() => {
     try {
-      // Load user from localStorage on app start
       const savedUser = localStorage.getItem('user');
       if (savedUser) {
-        setUser(JSON.parse(savedUser));
-      }
-
-      // Load orders from localStorage
-      const savedOrders = localStorage.getItem('orders');
-      if (savedOrders) {
-        setOrders(JSON.parse(savedOrders));
+        const parsedUser = JSON.parse(savedUser);
+        setUser(parsedUser);
+        // Solo cargar historial si hay un usuario válido
+        fetchOrderHistory();
       }
     } catch (error) {
       console.error('Error loading user data:', error);
-      // Clear corrupted data
       localStorage.removeItem('user');
-      localStorage.removeItem('orders');
+      localStorage.removeItem('token');
     } finally {
       setIsLoading(false);
     }
@@ -40,13 +71,10 @@ export const UserProvider = ({ children }) => {
 
   const login = (userData) => {
     try {
-      const userToSave = {
-        ...userData,
-        id: Date.now(),
-        createdAt: new Date().toISOString()
-      };
-      setUser(userToSave);
-      localStorage.setItem('user', JSON.stringify(userToSave));
+      setUser(userData);
+      localStorage.setItem('user', JSON.stringify(userData));
+      // Cargar historial de pedidos después del login
+      fetchOrderHistory();
     } catch (error) {
       console.error('Error saving user data:', error);
     }
@@ -55,36 +83,14 @@ export const UserProvider = ({ children }) => {
   const logout = () => {
     try {
       setUser(null);
+      setOrders([]);
       localStorage.removeItem('user');
-      // Clear cart on logout
+      localStorage.removeItem('token');
       localStorage.removeItem('cart');
       localStorage.removeItem('pendingOrder');
-      // Dispatch event to update cart count
       window.dispatchEvent(new Event('cartUpdated'));
     } catch (error) {
       console.error('Error during logout:', error);
-    }
-  };
-
-  const addOrder = (order) => {
-    try {
-      const newOrders = [...orders, order];
-      setOrders(newOrders);
-      localStorage.setItem('orders', JSON.stringify(newOrders));
-    } catch (error) {
-      console.error('Error saving order:', error);
-    }
-  };
-
-  const updateOrder = (orderId, updates) => {
-    try {
-      const updatedOrders = orders.map(order => 
-        order.orderId === orderId ? { ...order, ...updates } : order
-      );
-      setOrders(updatedOrders);
-      localStorage.setItem('orders', JSON.stringify(updatedOrders));
-    } catch (error) {
-      console.error('Error updating order:', error);
     }
   };
 
@@ -93,9 +99,8 @@ export const UserProvider = ({ children }) => {
     login,
     logout,
     orders,
-    addOrder,
-    updateOrder,
-    isLoading
+    isLoading,
+    fetchOrderHistory,
   };
 
   return (

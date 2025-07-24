@@ -1,47 +1,54 @@
+
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FaHeart, FaRegHeart, FaArrowLeft, FaStar, FaStore } from 'react-icons/fa';
-import '../styles/main.css';
+import axios from 'axios';
 
-const mockCompanies = [
-  { id: 1, name: 'Burger Palace', rating: 4.5, deliveryTime: '20-30 min', minOrder: '$5', category: 'Hamburguesas' },
-  { id: 2, name: 'Pizza Heaven', rating: 4.7, deliveryTime: '25-35 min', minOrder: '$8', category: 'Pizzas' },
-  { id: 3, name: 'Sushi World', rating: 4.3, deliveryTime: '30-40 min', minOrder: '$12', category: 'Sushi' },
-];
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
 
-const mockProducts = {
-  1: [
-    { id: 1, name: 'Hamburguesa Clásica', price: 8.50, description: 'Carne 100% de res, lechuga, tomate, cebolla y queso cheddar', image: 'https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=600&q=80', rating: 4.3, prepTime: '15 min' },
-    { id: 2, name: 'Hamburguesa Doble', price: 12.00, description: 'Doble carne con doble queso, bacon crujiente y salsa especial', image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?auto=format&fit=crop&w=600&q=80', rating: 4.6, prepTime: '18 min' },
-    { id: 3, name: 'Combo Clásico', price: 15.50, description: 'Hamburguesa + papas fritas + bebida', image: 'https://images.unsplash.com/photo-1571091718767-18b5b1457add?auto=format&fit=crop&w=600&q=80', rating: 4.4, prepTime: '20 min' },
-    { id: 4, name: 'Nuggets de Pollo', price: 9.00, description: '8 piezas de nuggets con salsa a elección', image: 'https://images.unsplash.com/photo-1562967914-608f82629710?auto=format&fit=crop&w=600&q=80', rating: 4.1, prepTime: '12 min' },
-  ],
-  2: [
-    { id: 3, name: 'Pizza Margarita', price: 10.00, description: 'Salsa de tomate, mozzarella fresca y albahaca', image: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=600&q=80', rating: 4.5, prepTime: '25 min' },
-    { id: 4, name: 'Pizza Pepperoni', price: 13.00, description: 'Pepperoni, mozzarella y salsa de tomate', image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?auto=format&fit=crop&w=600&q=80', rating: 4.7, prepTime: '28 min' },
-    { id: 5, name: 'Pizza Hawaiana', price: 14.50, description: 'Jamón, piña, mozzarella y salsa de tomate', image: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=600&q=80', rating: 4.2, prepTime: '30 min' },
-    { id: 6, name: 'Pizza Cuatro Quesos', price: 16.00, description: 'Mozzarella, parmesano, gorgonzola y provolone', image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?auto=format&fit=crop&w=600&q=80', rating: 4.8, prepTime: '32 min' },
-  ],
-  3: [
-    { id: 5, name: 'Sushi Roll Clásico', price: 9.00, description: 'Salmón fresco con aguacate y pepino', image: 'https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?auto=format&fit=crop&w=600&q=80', rating: 4.6, prepTime: '20 min' },
-    { id: 6, name: 'Sashimi Mixto', price: 11.00, description: 'Sashimi de salmón, atún y camarón', image: 'https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?auto=format&fit=crop&w=600&q=80', rating: 4.9, prepTime: '15 min' },
-    { id: 7, name: 'Combo Sushi', price: 18.50, description: '2 rolls + sopa miso + ensalada', image: 'https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?auto=format&fit=crop&w=600&q=80', rating: 4.7, prepTime: '25 min' },
-    { id: 8, name: 'Tempura Roll', price: 12.00, description: 'Camarón tempura con aguacate y salsa especial', image: 'https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?auto=format&fit=crop&w=600&q=80', rating: 4.4, prepTime: '22 min' },
-  ],
-};
 
 const CompanyProductsPage = () => {
-  const { companyId } = useParams();
+  const { empresaNombre } = useParams();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
-  const company = mockCompanies.find(c => c.id === Number(companyId));
-  const products = mockProducts[companyId] || [];
+  const [company, setCompany] = useState(null);
+  const [products, setProducts] = useState([]);
   const [favs, setFavs] = useState([]);
+  const [cartMessage, setCartMessage] = useState('');
 
   useEffect(() => {
-    setLoading(true);
-    setTimeout(() => setLoading(false), 300);
-  }, [companyId]);
+    const fetchCompanyAndProducts = async () => {
+      setLoading(true);
+      try {
+        // Buscar empresa por nombre
+        const companyRes = await axios.get(`${API_BASE}/empresas/public/?search=${empresaNombre}`);
+        // El endpoint público devuelve un array, busca coincidencia exacta por nombre
+        let foundCompany = null;
+        if (Array.isArray(companyRes.data)) {
+          foundCompany = companyRes.data.find(e => e.nombre === decodeURIComponent(empresaNombre));
+        } else {
+          foundCompany = companyRes.data;
+        }
+        if (!foundCompany || !foundCompany.id) {
+          setCompany(null);
+          setProducts([]);
+          setLoading(false);
+          return;
+        }
+        setCompany(foundCompany);
+
+        // Obtener productos de la empresa (asegura endpoint correcto)
+        const productsRes = await axios.get(`${API_BASE}/empresas/${foundCompany.id}/products/`);
+        setProducts(Array.isArray(productsRes.data) ? productsRes.data : []);
+      } catch (err) {
+        setCompany(null);
+        setProducts([]);
+      }
+      setLoading(false);
+    };
+    fetchCompanyAndProducts();
+  }, [empresaNombre]);
 
   if (loading) {
     return (
@@ -76,32 +83,45 @@ const CompanyProductsPage = () => {
     setFavs(favs.includes(id) ? favs.filter(f => f !== id) : [...favs, id]);
   };
 
-  const handleAddToCart = (product) => {
-    const cartItem = {
-      id: product.id,
-      name: product.name,
-      price: product.price,
-      quantity: 1,
-      company: company.name,
-      image: product.image
-    };
-    
-    const existingCart = JSON.parse(localStorage.getItem('cart') || '[]');
-    const existingItemIndex = existingCart.findIndex(item => item.id === product.id);
-    
-    if (existingItemIndex >= 0) {
-      existingCart[existingItemIndex].quantity += 1;
-    } else {
-      existingCart.push(cartItem);
+  const token = localStorage.getItem('token');
+  const handleAddToCart = async (product) => {
+    try {
+      await axios.post(`${API_BASE}/cart/add-item/`, {
+        producto_id: product.id,
+        quantity: 1
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      window.dispatchEvent(new Event('cartUpdated'));
+      setCartMessage('¡Producto añadido al carrito!');
+      setTimeout(() => setCartMessage(''), 2500);
+    } catch (err) {
+      setCartMessage('Error al agregar al carrito');
+      setTimeout(() => setCartMessage(''), 2500);
     }
-    
-    localStorage.setItem('cart', JSON.stringify(existingCart));
-    window.dispatchEvent(new Event('cartUpdated'));
-    navigate('/cart');
   };
 
   return (
     <div style={{ background: '#f8f9fa', minHeight: '100vh' }}>
+      {cartMessage && (
+        <div style={{
+          position: 'fixed',
+          top: '1.5rem',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          background: cartMessage.startsWith('Error') ? '#fee2e2' : '#d1fae5',
+          color: cartMessage.startsWith('Error') ? '#b91c1c' : '#065f46',
+          padding: '1rem 2rem',
+          borderRadius: '8px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+          zIndex: 9999,
+          fontWeight: 600,
+          fontSize: '1rem',
+          transition: 'opacity 0.3s'
+        }}>
+          {cartMessage}
+        </div>
+      )}
       {/* Header */}
       <div style={{ 
         background: '#fff', 
@@ -130,18 +150,14 @@ const CompanyProductsPage = () => {
           </button>
           <div>
             <h1 style={{ margin: 0, fontSize: '1.3rem', fontWeight: 700, color: '#222' }}>
-              {company.name}
+              {company.nombre}
             </h1>
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '0.25rem' }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.9rem', color: '#666' }}>
-                <FaStar color="#f97316" size={12} />
-                {company.rating}
+              <span style={{ fontSize: '0.9rem', color: '#666' }}>
+                {company.direccion || 'Sin dirección'}
               </span>
               <span style={{ fontSize: '0.9rem', color: '#666' }}>
-                {company.deliveryTime}
-              </span>
-              <span style={{ fontSize: '0.9rem', color: '#666' }}>
-                Mín. {company.minOrder}
+                Tel: {company.telefono || 'Sin teléfono'}
               </span>
             </div>
           </div>
@@ -173,8 +189,8 @@ const CompanyProductsPage = () => {
                 position: 'relative'
               }}>
                 <img 
-                  src={product.image}
-                  alt={product.name}
+                  src={product.imagen ? (product.imagen.startsWith('http') ? product.imagen : `http://localhost:8000${product.imagen}`) : 'https://source.unsplash.com/170x150/?food,product'}
+                  alt={product.nombre}
                   style={{ 
                     width: '100%', 
                     height: '100%', 
@@ -220,7 +236,7 @@ const CompanyProductsPage = () => {
                     color: '#222',
                     flex: 1
                   }}>
-                    {product.name}
+                    {product.nombre}
                   </h3>
                   <span style={{ 
                     fontSize: '1.2rem', 
@@ -228,7 +244,7 @@ const CompanyProductsPage = () => {
                     color: '#2c3e50',
                     marginLeft: '0.5rem'
                   }}>
-                    ${product.price}
+                    ${product.precio}
                   </span>
                 </div>
 
@@ -238,17 +254,11 @@ const CompanyProductsPage = () => {
                   color: '#666',
                   lineHeight: '1.4'
                 }}>
-                  {product.description}
+                  {product.descripcion}
                 </p>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.85rem', color: '#666' }}>
-                    <FaStar color="#f97316" size={12} />
-                    {product.rating}
-                  </span>
-                  <span style={{ fontSize: '0.85rem', color: '#666' }}>
-                    {product.prepTime}
-                  </span>
+                  {/* Puedes agregar más campos si el modelo los tiene */}
                 </div>
 
                 <button 
@@ -282,4 +292,4 @@ const CompanyProductsPage = () => {
   );
 };
 
-export default CompanyProductsPage; 
+export default CompanyProductsPage;

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useUser } from './UserContext';
 import { FaListAlt, FaHistory, FaStore, FaGift, FaUserCircle, FaShoppingCart, FaCreditCard, FaHome } from 'react-icons/fa';
 import '../styles/components/hamburgerMenu.css';
@@ -9,7 +9,7 @@ const HEADER_HEIGHT = 64; // px, debe coincidir con el header
 const HamburgerMenu = ({ isOpen, onToggle }) => {
   const { user } = useUser();
   const location = useLocation();
-
+  const navigate = useNavigate();
   const handleClose = () => onToggle();
   const handleNav = () => onToggle();
 
@@ -47,9 +47,9 @@ const HamburgerMenu = ({ isOpen, onToggle }) => {
             
             return (
               <li key={item.path}>
-                <Link 
-                  to={item.path} 
-                  onClick={handleNav} 
+                <Link
+                  to={user ? item.path : '/login'}
+                  onClick={handleNav}
                   className={isActive ? 'active' : ''}
                   style={{
                     animationDelay: `${menuItems.indexOf(item) * 0.1}s`
@@ -61,21 +61,6 @@ const HamburgerMenu = ({ isOpen, onToggle }) => {
             );
           })}
         </ul>
-        <div className="sidebar-cupones">
-          <h4><FaGift style={{marginRight:4}}/>Cupones</h4>
-          {cupones.map((c, index) => (
-            <div 
-              className="cupon-card" 
-              key={c.code}
-              style={{
-                animationDelay: `${index * 0.1}s`
-              }}
-            >
-              <span className="cupon-code">{c.code}</span>
-              <span className="cupon-desc">{c.desc}</span>
-            </div>
-          ))}
-        </div>
       </nav>
       {isOpen && <div className="sidebar-backdrop apple-blur" onClick={handleClose}></div>}
     </>

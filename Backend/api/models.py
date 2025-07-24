@@ -1,18 +1,13 @@
 from django.db import models
 from users.models import User, Empresa, Repartidor 
+from django.contrib.auth import get_user_model
 
-class Producto(models.Model):
-    empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name='productos')
-    nombre = models.CharField(max_length=255)
-    descripcion = models.TextField(blank=True)
-    precio = models.DecimalField(max_digits=10, decimal_places=2)
-    imagen = models.ImageField(upload_to='productos/', blank=True, null=True)
 
-    def __str__(self):
-        return self.nombre
 
+User = get_user_model()
 class Pedido(models.Model):
     ESTADOS = [
+        ('pendiente', 'Pendiente'),
         ('En proceso', 'En proceso'),
         ('enviado', 'Enviado'),
         ('entregado', 'Entregado'),
@@ -22,9 +17,17 @@ class Pedido(models.Model):
     cliente = models.ForeignKey(User, on_delete=models.CASCADE, related_name='pedidos', db_index=True)
     empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name='pedidos', db_index=True)
     repartidor = models.ForeignKey(Repartidor, on_delete=models.SET_NULL, related_name='pedidos', null=True, blank=True)
+
+    METODOS_PAGO = [
+        ('Efectivo', 'Efectivo'),
+        ('Tarjeta', 'Tarjeta'),
+        ('Yappy', 'Yappy'),
+    ]
+
     fecha_pedido = models.DateTimeField(auto_now_add=True)
     total = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     estado = models.CharField(max_length=20, choices=ESTADOS, default='pendiente')
+    metodo_pago = models.CharField(max_length=20, choices=METODOS_PAGO, default='Efectivo')
 
     def __str__(self):
         return f'Pedido {self.id} - {self.cliente.email}'
@@ -35,6 +38,27 @@ class Pedido(models.Model):
         self.save(update_fields=['total'])
         return total
 
+class Cart(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='carts')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+class CartItem(models.Model):
+    cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name='items')
+    producto = models.ForeignKey('Producto', on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(default=1)
+    added_at = models.DateTimeField(auto_now_add=True)
+
+class Producto(models.Model):
+    empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name='productos')
+    nombre = models.CharField(max_length=255)
+    descripcion = models.TextField(blank=True)
+    precio = models.DecimalField(max_digits=10, decimal_places=2)
+    imagen = models.ImageField(upload_to='productos/', blank=True, null=True)
+
+    def __str__(self):
+        return self.nombre
+    
 class ItemPedido(models.Model):
     pedido = models.ForeignKey(Pedido, on_delete=models.CASCADE, related_name='items')
     producto = models.ForeignKey(Producto, on_delete=models.CASCADE, related_name='items_pedido')

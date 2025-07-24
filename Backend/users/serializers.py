@@ -22,10 +22,11 @@ class UserSerializer(serializers.ModelSerializer):
     repartidor = RepartidorRegistroSerializer(required=False)
     direccion = serializers.CharField(required=False, allow_blank=True)
     telefono = serializers.CharField(required=False, allow_blank=True)
+    profile_pic = serializers.ImageField(required=False, allow_null=True)
 
     class Meta:
         model = User
-        fields = ('id', 'name', 'email', 'password', 'role', 'telefono', 'direccion', 'empresa', 'repartidor')
+        fields = ('id', 'name', 'email', 'password', 'role', 'telefono', 'direccion', 'empresa', 'repartidor', 'profile_pic')
 
     def validate_password(self, value):
         validate_password(value)
@@ -71,6 +72,26 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         data['name'] = self.user.name
         data['email'] = self.user.email
         data['role'] = self.user.role
+        data['telefono'] = self.user.telefono
+        # Si el usuario es empresa, incluir el nombre de la empresa
+        if self.user.role == 'empresa':
+            empresa = getattr(self.user, 'empresa', None)
+            if empresa:
+                data['empresaNombre'] = empresa.nombre
+            else:
+                empresas = getattr(self.user, 'empresas', None)
+                if empresas and empresas.exists():
+                    data['empresaNombre'] = empresas.first().nombre
+                else:
+                    data['empresaNombre'] = ''
+
+        # Si el usuario es repartidor, incluir el id del modelo Repartidor
+        if self.user.role == 'repartidor':
+            repartidor_obj = getattr(self.user, 'repartidor', None)
+            if repartidor_obj:
+                data['repartidor_model_id'] = repartidor_obj.id
+            else:
+                data['repartidor_model_id'] = None
 
         # Si el usuario es empresa, incluir el nombre de la empresa
         if self.user.role == 'empresa':

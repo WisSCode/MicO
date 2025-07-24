@@ -1,117 +1,91 @@
-import React, { useState } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
+import AddToCartModal from '../components/AddToCartModal';
+import { addToCart } from '../utils/cart';
 import { useNavigate } from 'react-router-dom';
-import { FaHamburger, FaPizzaSlice, FaFish, FaIceCream, FaLeaf, FaDrumstickBite, FaBreadSlice, FaBacon, FaHotdog, FaUtensils, FaCoffee, FaCarrot, FaStar, FaMapMarkerAlt } from 'react-icons/fa';
+import { FaStar, FaMapMarkerAlt, FaPhoneAlt, FaStore } from 'react-icons/fa';
 import heroBg from '../assets/images/home.avif';
 import '../styles/main.css';
+import { UserContext } from '../components/UserContext';
 
-const categories = [
-  { id: 1, name: 'Comida rápida', icon: <FaHamburger size={36} /> },
-  { id: 2, name: 'Desayuno y brunch', icon: <FaCoffee size={36} /> },
-  { id: 3, name: 'Comida americana', icon: <FaHotdog size={36} /> },
-  { id: 4, name: 'Comida mexicana', icon: <FaBacon size={36} /> },
-  { id: 5, name: 'Comida china', icon: <FaUtensils size={36} /> },
-  { id: 6, name: 'Comida italiana', icon: <FaPizzaSlice size={36} /> },
-  { id: 7, name: 'Comida saludable', icon: <FaCarrot size={36} /> },
-  { id: 8, name: 'Comida asiática', icon: <FaFish size={36} /> },
-  { id: 9, name: 'Panadería', icon: <FaBreadSlice size={36} /> },
-  { id: 10, name: 'Comfort food', icon: <FaIceCream size={36} /> },
-  { id: 11, name: 'Pizza', icon: <FaPizzaSlice size={36} /> },
-  { id: 12, name: 'Delicatesen', icon: <FaLeaf size={36} /> },
-];
+import { fetchEmpresasPublic } from '../utils/empresas_public';
+import { searchEmpresasYComidas } from '../utils/search';
 
-const restaurants = [
-  {
-    id: 1,
-    name: 'Burger Palace',
-    type: 'Hamburguesas • Americana',
-    address: 'Avenida Central, Ciudad De David, Area Bancarea, Panama City, David 800',
-    rating: 4.5,
-    img: 'https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=600&q=80',
-    fallbackImg: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?auto=format&fit=crop&w=600&q=80',
-    isNew: false,
-    companyId: 1,
-  },
-  {
-    id: 2,
-    name: 'Pizza Heaven',
-    type: 'Pizza • Italiana',
-    address: 'Chiriquí, Distrito De David, Corregimiento De David(Cabecera) Calle 1 Este Urbanización David Centro',
-    rating: 4.7,
-    img: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=600&q=80',
-    fallbackImg: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?auto=format&fit=crop&w=600&q=80',
-    isNew: false,
-    companyId: 2,
-  },
-  {
-    id: 3,
-    name: 'Sushi World',
-    type: 'Sushi • Asiática',
-    address: 'Plaza F507 Al Lado De Minimed, Panama City, David David',
-    rating: 4.3,
-    img: 'https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?auto=format&fit=crop&w=600&q=80',
-    fallbackImg: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?auto=format&fit=crop&w=600&q=80',
-    isNew: true,
-    companyId: 3,
-  },
-  {
-    id: 4,
-    name: 'Popeyes Federal Mall',
-    type: 'Fried Chicken • Pollo frito • Americana',
-    address: 'Vía Boquete, David, Provincia De Chiriquí, Panamá, LATAM 0000',
-    rating: 4.2,
-    img: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=600&q=80',
-    fallbackImg: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?auto=format&fit=crop&w=600&q=80',
-    isNew: true,
-    companyId: 1,
-  },
-  {
-    id: 5,
-    name: 'Kotowa Coffee House (Kenny Serracin)',
-    type: 'Café y té • Americana • Desayuno y brunch • Keto • Panadería',
-    address: 'Distrito De David, Corregimiento David Cabecera, Calle E Norte 606, Edificio Frente Al Estadio Kenny',
-    rating: 4.6,
-    img: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80',
-    fallbackImg: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?auto=format&fit=crop&w=600&q=80',
-    isNew: true,
-    companyId: 3,
-  },
-  {
-    id: 6,
-    name: 'Kotowa Coffee House (Terrazas de David)',
-    type: 'Café y té • Americana • Desayuno y brunch • Keto • Panadería',
-    address: 'Distrito De David, Corregimiento De David, Calle Via Interamericana, Plaza Terrazas De David',
-    rating: 4.4,
-    img: 'https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=600&q=80',
-    fallbackImg: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?auto=format&fit=crop&w=600&q=80',
-    isNew: true,
-    companyId: 3,
-  },
-];
+const MEDIA_URL = 'http://localhost:8000/media/';
+
+
+
 
 const HomePage = () => {
   const navigate = useNavigate();
+  const [empresas, setEmpresas] = useState([]);
   const [imageErrors, setImageErrors] = useState({});
   const [address, setAddress] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [searchResults, setSearchResults] = useState({ empresas: [], productos: [] });
+  const [searching, setSearching] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const { user } = useContext(UserContext); // 
 
-  // HERO NUEVO
-  const handleRestaurantClick = (restaurant) => {
-    navigate(`/company/${restaurant.companyId}/products`);
-  };
+  useEffect(() => {
+    fetchEmpresasPublic().then(setEmpresas).catch(() => setEmpresas([]));
+  }, []);
 
-  const handleCategoryClick = (category) => {
-    // For now, just show a message. In a real app, this would filter restaurants
-    alert(`Categoría seleccionada: ${category.name}`);
-  };
-
-  const handleImageError = (e, restaurant) => {
-    if (restaurant.fallbackImg && e.target.src !== restaurant.fallbackImg) {
-      e.target.src = restaurant.fallbackImg;
-    } else {
-      // If fallback also fails, show a placeholder
-      e.target.style.display = 'none';
-      e.target.nextSibling.style.display = 'flex';
-      setImageErrors(prev => ({ ...prev, [restaurant.id]: true }));
+  useEffect(() => {
+    if (!searchTerm.trim()) {
+      setSearchResults({ empresas: [], productos: [] });
+      setSearching(false);
+      return;
     }
+    setSearching(true);
+    const timeout = setTimeout(() => {
+      searchEmpresasYComidas(searchTerm)
+        .then(res => {
+          setSearchResults(res);
+          setSearching(false);
+        })
+        .catch(() => {
+          setSearchResults({ empresas: [], productos: [] });
+          setSearching(false);
+        });
+    }, 400);
+    return () => clearTimeout(timeout);
+  }, [searchTerm]);
+
+  const handleProductClick = (producto) => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+    setSelectedProduct(producto);
+    setModalOpen(true);
+  };
+
+  const handleAddToCart = async (producto, quantity) => {
+    try {
+      await addToCart(producto.id, quantity);
+      setModalOpen(false);
+    } catch (err) {
+      alert('Error al añadir al carrito');
+    }
+  };
+
+  const handleEmpresaClick = (empresa) => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+    if (empresa && empresa.nombre) {
+      navigate(`/${encodeURIComponent(empresa.nombre)}/products`);
+    }
+  };
+
+  const handleImageError = (e, empresa) => {
+    e.target.style.display = 'none';
+    if (e.target.nextSibling) {
+      e.target.nextSibling.style.display = 'flex';
+    }
+    setImageErrors(prev => ({ ...prev, [empresa.id]: true }));
   };
 
   return (
@@ -158,6 +132,9 @@ const HomePage = () => {
             alignItems: 'center',
             gap: '1rem',
             marginTop: '0.5rem',
+            flexDirection: 'column',
+            width: '100%',
+            maxWidth: 420,
           }}>
             <div style={{
               display: 'flex',
@@ -171,12 +148,11 @@ const HomePage = () => {
               width: '100%',
               height: 48,
             }}>
-              <FaMapMarkerAlt style={{ color: '#f97316', fontSize: '1.2rem', marginRight: 8 }} />
               <input
                 type="text"
-                placeholder="Ingresa la dirección de entrega"
-                value={address}
-                onChange={e => setAddress(e.target.value)}
+                placeholder="Buscar empresas o comidas..."
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
                 style={{
                   border: 'none',
                   outline: 'none',
@@ -188,28 +164,51 @@ const HomePage = () => {
                 }}
               />
             </div>
-            <button
-              style={{
-                background: '#111',
-                color: '#fff',
-                border: 'none',
+            {searchTerm.trim() && (
+              <div style={{
+                background: '#fff',
                 borderRadius: 8,
-                fontWeight: 600,
-                fontSize: '1rem',
-                height: 48,
-                padding: '0 1.2rem',
-                cursor: 'pointer',
-                transition: 'background 0.2s',
-                minWidth: 120,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-              onClick={() => alert(`Buscando comida para: ${address}`)}
-              disabled={!address.trim()}
-            >
-              Buscar comida
-            </button>
+                boxShadow: '0 2px 12px 0 rgba(0,0,0,0.04)',
+                marginTop: 8,
+                width: '100%',
+                maxWidth: 420,
+                padding: '1rem',
+                zIndex: 10,
+              }}>
+                {searching ? (
+                  <div style={{ textAlign: 'center', color: '#888' }}>Buscando...</div>
+                ) : (
+                  <>
+                    {searchResults.empresas.length > 0 && (
+                      <div>
+                        <div style={{ fontWeight: 600, marginBottom: 4 }}>Empresas</div>
+                        {searchResults.empresas.map(empresa => (
+                          <div key={empresa.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0.5rem 0', cursor: 'pointer' }} onClick={() => handleEmpresaClick(empresa)}>
+                            <img src={empresa.logo ? (empresa.logo.startsWith('http') ? empresa.logo : MEDIA_URL + empresa.logo) : undefined} alt={empresa.nombre} style={{ width: 32, height: 32, borderRadius: 8, objectFit: 'cover', background: '#eee' }} />
+                            <span>{empresa.nombre}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {searchResults.productos.length > 0 && (
+                      <div style={{ marginTop: 12 }}>
+                        <div style={{ fontWeight: 600, marginBottom: 4 }}>Comidas</div>
+                        {searchResults.productos.map(producto => (
+                          <div key={producto.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0.5rem 0', cursor: 'pointer' }} onClick={() => handleProductClick(producto)}>
+                            <img src={producto.imagen ? (producto.imagen.startsWith('http') ? producto.imagen : MEDIA_URL + producto.imagen) : undefined} alt={producto.nombre} style={{ width: 32, height: 32, borderRadius: 8, objectFit: 'cover', background: '#eee' }} />
+                            <span>{producto.nombre}</span>
+                            <span style={{ color: '#888', fontSize: 12 }}>({producto.empresa_nombre})</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {searchResults.empresas.length === 0 && searchResults.productos.length === 0 && (
+                      <div style={{ textAlign: 'center', color: '#888' }}>Sin resultados</div>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -245,70 +244,49 @@ const HomePage = () => {
             Recibe en casa la comida de tu restaurante favorito en David con la app de Mic. Encuentra lugares nuevos cerca de ti para comer en David, ya sea para pedir desayunos, almuerzos, cenas o refrigerios. Explora cientos de opciones de comida a domicilio, haz el pedido y síguelo minuto a minuto.
           </div>
           <hr className="ue2-sep" />
-          {/* Categorías */}
-          <div className="ue2-cat-header-row">
-            <h2 className="ue2-cat-title">Explorar por categoría</h2>
-          </div>
-          <div className="ue2-categories-grid">
-            {categories.map(cat => (
-              <div 
-                className="ue2-cat-card" 
-                key={cat.id}
-                onClick={() => handleCategoryClick(cat)}
-                style={{ cursor: 'pointer', background: 'transparent' }}
-              >
-                <div className="ue2-cat-icon">{cat.icon}</div>
-                <div className="ue2-cat-name">{cat.name}</div>
-              </div>
-            ))}
-          </div>
-          {/* Restaurantes */}
+
+          {/* Empresas */}
           <div className="ue2-rest-list">
-            {restaurants.map(r => (
+            {empresas.map(empresa => (
               <div 
                 className="ue2-rest-card" 
-                key={r.id}
-                onClick={() => handleRestaurantClick(r)}
+                key={empresa.id}
+                onClick={() => handleEmpresaClick(empresa)}
                 style={{ cursor: 'pointer' }}
               >
                 <div className="ue2-rest-img-wrap">
-                  <img 
-                    src={r.img} 
-                    alt={r.name} 
-                    className="ue2-rest-img" 
-                    onError={(e) => handleImageError(e, r)}
-                  />
-                  <div 
-                    className="ue2-rest-img-placeholder" 
-                    style={{
-                      display: imageErrors[r.id] ? 'flex' : 'none',
-                      width: '100%',
-                      height: '100%',
-                      background: '#e5e7eb',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: '#9ca3af',
-                      fontSize: '2rem'
-                    }}
-                  >
-                    <FaUtensils />
-                  </div>
+                  {empresa.logo ? (
+                    <img 
+                      src={empresa.logo.startsWith('http') ? empresa.logo : MEDIA_URL + empresa.logo}
+                      alt={empresa.nombre}
+                      className="ue2-rest-img"
+                      onError={(e) => handleImageError(e, empresa)}
+                    />
+                  ) : (
+                    <div className="ue2-rest-img-placeholder" style={{width:'100%',height:'100%',background:'#e5e7eb',display:'flex',alignItems:'center',justifyContent:'center',color:'#9ca3af',fontSize:'2rem'}}>
+                      <FaStore />
+                    </div>
+                  )}
                 </div>
                 <div className="ue2-rest-info">
                   <div className="ue2-rest-row1">
-                    <span className="ue2-rest-name">{r.name}</span>
-                    {r.rating && <span className="ue2-rest-rating"><FaStar style={{marginRight:3}} />{r.rating}</span>}
-                    {r.isNew && <span className="ue2-rest-new">Nuevo</span>}
+                    <span className="ue2-rest-name">{empresa.nombre}</span>
                   </div>
-                  <div className="ue2-rest-type">{r.type}</div>
-                  <div className="ue2-rest-addr">{r.address}</div>
+                  <div className="ue2-rest-addr"><FaMapMarkerAlt style={{marginRight:4}} />{empresa.direccion || 'Sin dirección'}</div>
+                  <div className="ue2-rest-addr"><FaPhoneAlt style={{marginRight:4}} />{empresa.telefono || 'Sin teléfono'}</div>
                 </div>
               </div>
             ))}
           </div>
         </section>
       </div>
-    </div>
+    <AddToCartModal
+      product={selectedProduct}
+      open={modalOpen}
+      onClose={() => setModalOpen(false)}
+      onAdd={handleAddToCart}
+    />
+  </div>
   );
 };
 

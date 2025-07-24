@@ -1,15 +1,27 @@
 # Python
 __pycache__/
+*/__pycache__/
+**/__pycache__/
 *.py[cod]
+*.pyo
+*.pyd
 *.log
+db.sqlite3
+.vscode/
+
+# Environment files
 .env
-db.sqlite3       
+.env.local
+.env.development
+.env.test
+.env.production
+*.env
+**/.env
 
 # Django
-/media
+media/
 /static
 
 # Node
 node_modules/
 dist/
-.env

@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FaHamburger, FaEye, FaEyeSlash } from "react-icons/fa";
 import axios from 'axios';
+import { UserContext } from '../components/UserContext';
 
 const login = async (email, password) => {
   const response = await axios.post(
@@ -15,10 +16,20 @@ const login = async (email, password) => {
   );
   localStorage.setItem('token', response.data.access);
   localStorage.setItem('refresh', response.data.refresh);
+  localStorage.setItem('name', response.data.name);
+  localStorage.setItem('id', response.data.id);
+  localStorage.setItem('email', response.data.email);
+  localStorage.setItem('role', response.data.role);
+  localStorage.setItem('telefono', response.data.telefono);
+  // Si el usuario es repartidor y la respuesta incluye el id del modelo Repartidor, guárdalo
+  if (response.data.role === 'repartidor' && response.data.repartidor_model_id) {
+    localStorage.setItem('repartidor_model_id', response.data.repartidor_model_id);
+  }
   return response.data;
 };
 
 const LoginPage = () => {
+  const { login: loginContext } = useContext(UserContext);
   const [email, setEmail] = useState('');
   // const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -37,12 +48,19 @@ const LoginPage = () => {
       if (data.access && data.refresh && data.role) {
         setEmail('');
         setPassword('');
+        loginContext({
+          id: data.id,
+          name: data.name,
+          email: data.email,
+          role: data.role,
+          telefono: data.telefono
+        }); // Aquí pasas el nombre al contexto
         if (data.role === 'repartidor') {
           navigate('/homerepartidor');
         } else if (data.role === 'empresa') {
           navigate(`/${data.empresaNombre}/home`); 
         } else {
-          navigate('/homeuser');
+          navigate('/');
         }
       } else {
         setError('Error al iniciar sesión. Intenta de nuevo.');
