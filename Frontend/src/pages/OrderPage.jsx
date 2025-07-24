@@ -2,79 +2,109 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../components/UserContext';
 import { FaArrowLeft, FaCheckCircle, FaClock, FaUtensils, FaTruck, FaHome, FaShoppingBag } from 'react-icons/fa';
+import axios from 'axios';
 
 const OrderPage = () => {
   const navigate = useNavigate();
-  const { user, orders, updateOrder } = useUser();
+  const { user } = useUser();
   const [currentOrders, setCurrentOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    setLoading(true);
-    // Asegurar que orders sea un array
-    const safeOrders = orders || [];
-    // Filtrar solo pedidos activos (no entregados)
-    const activeOrders = safeOrders.filter(order => 
-      order.status !== 'completed' && order.status !== 'delivered'
-    );
-    setCurrentOrders(activeOrders);
-    setTimeout(() => setLoading(false), 300); // Simula carga breve
-  }, [orders]);
+  // Función para obtener pedidos activos desde la API
+  const fetchActiveOrders = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setCurrentOrders([]);
+        setLoading(false);
+        return;
+      }
 
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case 'completed':
-      case 'delivered':
+      const response = await axios.get('http://localhost:8000/api/pedidos/', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      // Filtrar solo pedidos activos (no entregados ni cancelados)
+      const activeOrders = response.data.filter(order => 
+        order.estado !== 'entregado' && order.estado !== 'cancelado'
+      );
+      
+      setCurrentOrders(activeOrders);
+    } catch (error) {
+      console.error('Error al obtener pedidos:', error);
+      setCurrentOrders([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchActiveOrders();
+
+    // Actualizar pedidos cada 30 segundos para obtener cambios de estado en tiempo real
+    const interval = setInterval(fetchActiveOrders, 30000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const getStatusIcon = (estado) => {
+    switch (estado) {
+      case 'entregado':
         return <FaCheckCircle color="#27ae60" />;
-      case 'preparing':
+      case 'En proceso':
+      case 'en_proceso':
         return <FaUtensils color="#f39c12" />;
-      case 'delivering':
+      case 'enviado':
         return <FaTruck color="#3498db" />;
       default:
         return <FaClock color="#95a5a6" />;
     }
   };
 
-  const getStatusText = (status) => {
-    switch (status) {
-      case 'completed':
-      case 'delivered':
+  const getStatusText = (estado) => {
+    switch (estado) {
+      case 'entregado':
         return 'Entregado';
-      case 'preparing':
-        return 'Preparando';
-      case 'delivering':
+      case 'En proceso':
+      case 'en_proceso':
+        return 'En proceso';
+      case 'enviado':
         return 'En camino';
+      case 'pendiente':
+        return 'Pendiente';
+      case 'cancelado':
+        return 'Cancelado';
       default:
         return 'Pendiente';
     }
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'completed':
-      case 'delivered':
+  const getStatusColor = (estado) => {
+    switch (estado) {
+      case 'entregado':
         return '#27ae60';
-      case 'preparing':
+      case 'En proceso':
+      case 'en_proceso':
         return '#f39c12';
-      case 'delivering':
+      case 'enviado':
         return '#3498db';
+      case 'cancelado':
+        return '#e74c3c';
       default:
         return '#95a5a6';
     }
   };
 
-  const simulateOrderProgress = (orderId) => {
-    const safeOrders = orders || [];
-    const order = safeOrders.find(o => o.orderId === orderId);
-    if (!order) return;
-
-    const statuses = ['pending', 'preparing', 'delivering', 'delivered'];
-    const currentIndex = statuses.indexOf(order.status);
-    
-    if (currentIndex < statuses.length - 1) {
-      const nextStatus = statuses[currentIndex + 1];
-      updateOrder(orderId, { status: nextStatus });
-    }
+  // Mapear estados de la base de datos a índices de progreso
+  const getProgressIndex = (estado) => {
+    const statusMap = {
+      'pendiente': 0,
+      'En proceso': 1,
+      'en_proceso': 1,
+      'enviado': 2,
+      'entregado': 3
+    };
+    return statusMap[estado] || 0;
   };
 
   if (loading) {
@@ -102,15 +132,15 @@ const OrderPage = () => {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              width: '32px',
               height: '32px',
               borderRadius: '50%',
-              transition: 'background-color 0.2s'
+              transition: 'background-color 0.2s',
+              color: '#111'
             }}
             onMouseOver={(e) => e.target.style.backgroundColor = '#f8f9fa'}
             onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
           >
-            <FaArrowLeft />
+            <FaArrowLeft color="#111" />
           </button>
           <span style={{ fontWeight: 600 }}>Estado de Pedidos</span>
         </div>
@@ -172,29 +202,45 @@ const OrderPage = () => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            width: '32px',
             height: '32px',
             borderRadius: '50%',
-            transition: 'background-color 0.2s'
+            transition: 'background-color 0.2s',
+            color: '#111'
           }}
           onMouseOver={(e) => e.target.style.backgroundColor = '#f8f9fa'}
           onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
         >
-          <FaArrowLeft />
+          <FaArrowLeft color="#111" />
         </button>
         <span style={{ fontWeight: 600 }}>Estado de Pedidos ({safeCurrentOrders.length})</span>
+        <button
+          onClick={fetchActiveOrders}
+          style={{
+            marginLeft: 'auto',
+            background: '#2563eb',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '6px',
+            padding: '0.5rem 1rem',
+            fontSize: '0.9rem',
+            cursor: 'pointer',
+            fontWeight: 500
+          }}
+        >
+          Actualizar
+        </button>
       </div>
 
       {/* Renderizar cada pedido activo */}
       {safeCurrentOrders.map((order, orderIndex) => (
-        <div key={order.orderId || orderIndex} style={{ margin: '2rem auto', maxWidth: 600, background: '#f9f9f9', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', padding: '1.5rem' }}>
+        <div key={order.id || orderIndex} style={{ margin: '2rem auto', maxWidth: 600, background: '#f9f9f9', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', padding: '1.5rem' }}>
           <div style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              {getStatusIcon(order.status)}
+              {getStatusIcon(order.estado)}
               <span style={{ fontWeight: 600, fontSize: '1.1rem' }}>Pedido</span>
-              <span style={{ color: '#888', fontWeight: 400, fontSize: '0.95rem', marginLeft: 8 }}>ID: {order.orderId || order.id}</span>
+              <span style={{ color: '#888', fontWeight: 400, fontSize: '0.95rem', marginLeft: 8 }}>ID: {order.id}</span>
             </div>
-            <span style={{ color: getStatusColor(order.status), fontWeight: 500 }}>{getStatusText(order.status)}</span>
+            <span style={{ color: getStatusColor(order.estado), fontWeight: 500 }}>{getStatusText(order.estado)}</span>
           </div>
 
           {/* Empresa */}
@@ -204,12 +250,42 @@ const OrderPage = () => {
             </div>
           )}
 
+          {/* Repartidor */}
+          {order.repartidor_nombre && (
+            <div style={{ marginBottom: '0.5rem', color: '#666', fontSize: '0.95rem' }}>
+              🚴 Repartidor: {order.repartidor_nombre}
+            </div>
+          )}
+
+          {/* Dirección de entrega */}
+          {(order.direccion_completa || order.direccion_nombre) && (
+            <div style={{ marginBottom: '1rem', padding: '0.75rem', backgroundColor: '#f8f9fa', borderRadius: '8px', border: '1px solid #e9ecef' }}>
+              <div style={{ fontWeight: 600, color: '#495057', marginBottom: '0.25rem', fontSize: '0.9rem' }}>
+                📍 Dirección de entrega
+              </div>
+              {order.direccion_nombre && (
+                <div style={{ fontWeight: 500, color: '#343a40', fontSize: '0.95rem' }}>
+                  {order.direccion_nombre}
+                </div>
+              )}
+              {order.direccion_completa && (
+                <div style={{ color: '#6c757d', fontSize: '0.9rem', marginTop: '0.25rem' }}>
+                  {order.direccion_completa}
+                </div>
+              )}
+              {order.direccion_referencia && (
+                <div style={{ color: '#6c757d', fontSize: '0.85rem', marginTop: '0.25rem', fontStyle: 'italic' }}>
+                  Referencia: {order.direccion_referencia}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Productos del pedido */}
           <div style={{ marginBottom: '1rem' }}>
             {(order.items || []).map((item, itemIndex) => {
-              // Eliminar recuadro de imagen, solo mostrar info textual
               return (
-                <div key={(item.producto_nombre || item.producto_id || 'item') + '-' + itemIndex} style={{
+                <div key={`${order.id}-item-${itemIndex}`} style={{
                   padding: '1rem',
                   borderBottom: '1px solid #f0f0f0',
                   display: 'flex',
@@ -218,16 +294,21 @@ const OrderPage = () => {
                   background: '#fff'
                 }}>
                   <div style={{ flex: 1 }}>
-                    <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1rem', fontWeight: 600 }}>{item.producto_nombre || (item.producto && item.producto.nombre) || 'Producto'}</h3>
-                    {(item.producto_id || (item.producto && item.producto.id)) && (
-                      <span style={{ fontSize: '0.8rem', color: '#aaa' }}>ID: {item.producto_id || (item.producto && item.producto.id)}</span>
-                    )}
-                    <p style={{ margin: '0.5rem 0 0 0', fontWeight: 600, color: '#2c3e50' }}>${item.precio_unitario}</p>
+                    <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1rem', fontWeight: 600 }}>
+                      {item.producto_nombre || item.nombre || 'Producto'}
+                    </h3>
+                    <p style={{ margin: '0.5rem 0 0 0', fontWeight: 600, color: '#2c3e50' }}>
+                      ${item.precio_unitario || item.precio || '0.00'}
+                    </p>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <span style={{ minWidth: '20px', textAlign: 'center', fontWeight: 600 }}>{item.cantidad}x</span>
+                    <span style={{ minWidth: '20px', textAlign: 'center', fontWeight: 600 }}>
+                      {item.cantidad}x
+                    </span>
                   </div>
-                  <span style={{ fontWeight: 600, color: '#2c3e50', minWidth: 60, textAlign: 'right' }}>${(item.precio_unitario * item.cantidad).toFixed(2)}</span>
+                  <span style={{ fontWeight: 600, color: '#2c3e50', minWidth: 60, textAlign: 'right' }}>
+                    ${((item.precio_unitario || item.precio || 0) * item.cantidad).toFixed(2)}
+                  </span>
                 </div>
               );
             })}
@@ -239,17 +320,20 @@ const OrderPage = () => {
               <span>Total:</span>
               <span>${order.total}</span>
             </div>
-            {order.coupon && (
-              <div style={{ fontSize: '0.9rem', color: '#27ae60', marginTop: '0.5rem' }}>
-                Cupón aplicado: {order.coupon}
+            {order.metodo_pago && (
+              <div style={{ fontSize: '0.9rem', color: '#6c757d', marginTop: '0.5rem' }}>
+                Método de pago: {order.metodo_pago}
               </div>
             )}
           </div>
 
-          {/* Order Progress (sin botón de simular progreso ni ver detalles) */}
+          {/* Order Progress conectado a la base de datos */}
           <div style={{ marginTop: '1rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
               <span style={{ fontSize: '0.9rem', fontWeight: 500 }}>Progreso del pedido:</span>
+              <span style={{ fontSize: '0.8rem', color: '#6c757d' }}>
+                Actualizado automáticamente
+              </span>
             </div>
             {/* Progress Bar */}
             <div style={{ 
@@ -260,23 +344,23 @@ const OrderPage = () => {
               overflow: 'hidden'
             }}>
               <div style={{ 
-                width: `${(['pending', 'preparing', 'delivering', 'delivered'].indexOf(order.status) + 1) * 25}%`,
+                width: `${(getProgressIndex(order.estado) + 1) * 25}%`,
                 height: '100%',
-                background: getStatusColor(order.status),
+                background: getStatusColor(order.estado),
                 transition: 'width 0.5s ease'
               }}></div>
             </div>
             {/* Progress Steps */}
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.5rem' }}>
               {['Pendiente', 'Preparando', 'En camino', 'Entregado'].map((step, index) => {
-                const isCompleted = ['pending', 'preparing', 'delivering', 'delivered'].indexOf(order.status) >= index;
+                const isCompleted = getProgressIndex(order.estado) >= index;
                 return (
                   <div key={step} style={{ textAlign: 'center' }}>
                     <div style={{
                       width: '20px',
                       height: '20px',
                       borderRadius: '50%',
-                      background: isCompleted ? getStatusColor(order.status) : '#e5e5e5',
+                      background: isCompleted ? getStatusColor(order.estado) : '#e5e5e5',
                       margin: '0 auto 0.25rem auto',
                       display: 'flex',
                       alignItems: 'center',
@@ -288,7 +372,7 @@ const OrderPage = () => {
                     </div>
                     <span style={{ 
                       fontSize: '0.7rem', 
-                      color: isCompleted ? getStatusColor(order.status) : '#999',
+                      color: isCompleted ? getStatusColor(order.estado) : '#999',
                       fontWeight: isCompleted ? 600 : 400
                     }}>
                       {step}

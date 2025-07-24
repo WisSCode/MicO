@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useUser } from './UserContext';
 import { FaBars, FaMapMarkerAlt, FaHamburger, FaShoppingCart } from 'react-icons/fa';
 import axios from 'axios';
+import AddressSelector from './AddressSelector';
 import './Header.css';
 
 const Header = ({ onMenuToggle }) => {
@@ -10,6 +11,7 @@ const Header = ({ onMenuToggle }) => {
   const { empresaNombre } = useParams();
   const navigate = useNavigate();
   const [cartCount, setCartCount] = useState(0);
+  const [selectedAddress, setSelectedAddress] = useState(null);
 
   useEffect(() => {
     const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
@@ -75,6 +77,10 @@ const Header = ({ onMenuToggle }) => {
     }
   };
 
+  const handleAddressChange = (address) => {
+    setSelectedAddress(address);
+  };
+
   return (
     <header className="ue-header">
       <div className="ue-header-content">
@@ -83,9 +89,19 @@ const Header = ({ onMenuToggle }) => {
             className="ue-hamburger-btn"
             aria-label="Menú"
             onClick={handleMenuClick}
-            // sin animación ni escala
+            style={{
+              background: 'none',
+              border: 'none',
+              padding: '0.3rem 0.7rem 0.3rem 0.1rem',
+              borderRadius: '50%',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              transition: 'background 0.15s',
+              color: '#111'
+            }}
           >
-            <FaBars size={24} />
+            <FaBars size={24} color="#111" />
           </button>
           {user ? (
             user.role === 'empresa' ? (
@@ -101,7 +117,7 @@ const Header = ({ onMenuToggle }) => {
                 </span>
               </Link>
             ) : user.role === 'repartidor' ? (
-              <Link to="/repartidor/home" className="ue-logo-area">
+              <Link to="/homerepartidor" className="ue-logo-area">
                 <span className="ue-logo-text">
                   Mic <span className="ue-burger-icon"><FaHamburger /></span>
                 </span>
@@ -123,10 +139,12 @@ const Header = ({ onMenuToggle }) => {
         </div>
         <div className="ue-header-center">
           {user && user.role === 'usuarionormal' && (
-            <div className="ue-address-input">
-              <FaMapMarkerAlt style={{marginRight:6}} />
-              <span>Ingresa la dirección de entrega</span>
-              <span className="ue-address-caret">▼</span>
+            <div style={{ minWidth: '300px', maxWidth: '400px' }}>
+              <AddressSelector
+                selectedAddress={selectedAddress}
+                onAddressChange={handleAddressChange}
+                placeholder="¿Dónde quieres recibir tu pedido?"
+              />
             </div>
           )}
         </div>
@@ -146,46 +164,77 @@ const Header = ({ onMenuToggle }) => {
                   </Link>
                 </nav>
               )}
-              <button className="ue-cart-btn" 
-                onClick={handleCartClick}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  position: 'relative',
-                  cursor: 'pointer',
-                  padding: '0.5rem',
-                  marginRight: '1.5rem',
-                  borderRadius: '50%',
-                  transition: 'background-color 0.2s',
-                  display:'flex',alignItems:'center',height:'40px'
-                }}
-                onMouseOver={(e) => e.target.style.backgroundColor = '#f3f4f6'}
-                onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
-              >
-                <FaShoppingCart size={20} />
-                {cartCount > 0 && (
-                  <span style={{
-                    position: 'absolute',
-                    top: '-5px',
-                    left: '-5px',
-                    background: '#e74c3c',
-                    color: '#fff',
+              {/* Solo mostrar el carrito si el usuario NO es repartidor */}
+              {user.role !== 'repartidor' && (
+                <button className="ue-cart-btn" 
+                  onClick={handleCartClick}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    position: 'relative',
+                    cursor: 'pointer',
+                    padding: '0.5rem',
+                    marginRight: '1.5rem',
                     borderRadius: '50%',
-                    width: '18px',
-                    height: '18px',
-                    fontSize: '0.7rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontWeight: 'bold',
-                    pointerEvents: 'none',
-                    zIndex: 2
-                  }}>
-                    {cartCount}
-                  </span>
-                )}
-              </button>
-              <span className="ue-user-name" style={{background:'#f3f4f6',borderRadius:'999px',padding:'0.5rem 1.2rem',color:'#222',fontWeight:'500',marginRight:'1.5rem',display:'flex',alignItems:'center',height:'40px',whiteSpace:'nowrap'}}>{user.username || user.name}</span>
+                    transition: 'background-color 0.2s',
+                    display:'flex',alignItems:'center',height:'40px'
+                  }}
+                  onMouseOver={(e) => e.target.style.backgroundColor = '#f3f4f6'}
+                  onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
+                >
+                  <FaShoppingCart size={20} />
+                  {cartCount > 0 && (
+                    <span style={{
+                      position: 'absolute',
+                      top: '-5px',
+                      left: '-5px',
+                      background: '#e74c3c',
+                      color: '#fff',
+                      borderRadius: '50%',
+                      width: '18px',
+                      height: '18px',
+                      fontSize: '0.7rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontWeight: 'bold',
+                      pointerEvents: 'none',
+                      zIndex: 2
+                    }}>
+                      {cartCount}
+                    </span>
+                  )}
+                </button>
+              )}
+              <span
+                className="ue-user-name"
+                style={{
+                  background: '#fff',
+                  borderRadius: '20px',
+                  padding: '0.5rem 1.2rem',
+                  color: '#222',
+                  fontWeight: 500,
+                  marginRight: '1.5rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  height: '40px',
+                  whiteSpace: 'nowrap',
+                  border: '2.5px solid #f97316',
+                  boxShadow: '0 2px 8px 0 rgba(249, 115, 22, 0.08)',
+                  transition: 'border-color 0.2s, box-shadow 0.2s',
+                  cursor: 'default'
+                }}
+                onMouseOver={e => {
+                  e.currentTarget.style.borderColor = '#ff8000';
+                  e.currentTarget.style.boxShadow = '0 0 0 4px rgba(255, 128, 0, 0.12)';
+                }}
+                onMouseOut={e => {
+                  e.currentTarget.style.borderColor = '#f97316';
+                  e.currentTarget.style.boxShadow = '0 2px 8px 0 rgba(249, 115, 22, 0.08)';
+                }}
+              >
+                {user.username || user.name}
+              </span>
               <button className="ue-logout-btn" onClick={handleLogout} style={{height:'40px',display:'flex',alignItems:'center'}}>Salir</button>
             </div>
           ) : (

@@ -1,12 +1,28 @@
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from django.utils import timezone
 from datetime import timedelta
-from rest_framework import viewsets
+from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied
-from .models import Empresa, Producto, Pedido, Cart, CartItem
-from .serializers import EmpresaSerializer, ProductoSerializer, PedidoSerializer, CartSerializer
+from .models import Empresa, Producto, Pedido, Cart, CartItem, DireccionUsuario
+from .serializers import EmpresaSerializer, ProductoSerializer, PedidoSerializer, CartSerializer, DireccionUsuarioSerializer
+from .models import UbicacionRepartidor
+from .serializers import UbicacionRepartidorSerializer
+
+
+class DireccionUsuarioViewSet(viewsets.ModelViewSet):
+    serializer_class = DireccionUsuarioSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return DireccionUsuario.objects.filter(usuario=self.request.user)
+
+    def perform_create(self, serializer):
+        print(f"Datos recibidos: {self.request.data}")  # Debug
+        print(f"Usuario: {self.request.user}")  # Debug
+        serializer.save(usuario=self.request.user)
 
 class CartViewSet(viewsets.ModelViewSet):
     queryset = Cart.objects.all()
@@ -229,3 +245,105 @@ class PedidoViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(cliente=self.request.user)
+
+
+class GuardarUbicacionRepartidor(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        try:
+            latitud = request.data.get('latitud')
+            longitud = request.data.get('longitud')
+            
+            print(f"=== UBICACION REQUEST ===")
+            print(f"Usuario: {request.user.email} (ID: {request.user.id})")
+            print(f"Latitud: {latitud}, Longitud: {longitud}")
+            
+            if not latitud or not longitud:
+                print("Error: latitud y longitud son requeridos")
+                return Response({'error': 'latitud y longitud son requeridos'}, 
+                              status=status.HTTP_400_BAD_REQUEST)
+            
+            # Verificar si ya existe una ubicación para este usuario
+            try:
+                ubicacion = UbicacionRepartidor.objects.get(repartidor=request.user)
+                # Actualizar ubicación existente
+                ubicacion.latitud = latitud
+                ubicacion.longitud = longitud
+                ubicacion.save()
+                action = "actualizada"
+                print(f"Ubicación actualizada para usuario {request.user.email}")
+            except UbicacionRepartidor.DoesNotExist:
+                # Crear nueva ubicación
+                ubicacion = UbicacionRepartidor.objects.create(
+                    repartidor=request.user,
+                    latitud=latitud,
+                    longitud=longitud
+                )
+                action = "creada"
+                print(f"Nueva ubicación creada para usuario {request.user.email}")
+            
+            serializer = UbicacionRepartidorSerializer(ubicacion)
+            response_data = {
+                'message': f'Ubicación {action} exitosamente',
+                'data': serializer.data
+            }
+            print(f"Respuesta exitosa: {response_data}")
+            
+            return Response(response_data, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            print(f"=== ERROR INESPERADO ===")
+            print(f"Tipo de error: {type(e).__name__}")
+            print(f"Mensaje de error: {str(e)}")
+            import traceback
+            print(f"Traceback: {traceback.format_exc()}")
+            
+            return Response({'error': 'Error interno del servidor'}, 
+                          status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def get(self, request):
+        """Obtener ubicaciones de todos los repartidores activos"""
+        try:
+            # Obtener ubicaciones de los últimos 30 minutos para considerar como activos
+            from datetime import timedelta
+            limite_tiempo = timezone.now() - timedelta(minutes=30)
+            
+            ubicaciones = UbicacionRepartidor.objects.filter(
+                timestamp__gte=limite_tiempo
+            ).select_related('repartidor')
+            
+            ubicaciones_data = []
+            for ubicacion in ubicaciones:
+                # Verificar si el usuario tiene un repartidor asociado
+                try:
+                    repartidor_info = ubicacion.repartidor.repartidor
+                    ubicaciones_data.append({
+                        'repartidor_id': ubicacion.repartidor.id,
+                        'repartidor_nombre': f"{ubicacion.repartidor.first_name} {ubicacion.repartidor.last_name}".strip() or ubicacion.repartidor.email,
+                        'latitud': float(ubicacion.latitud),
+                        'longitud': float(ubicacion.longitud),
+                        'timestamp': ubicacion.timestamp,
+                        'activo': True
+                    })
+                except AttributeError:
+                    # Si no tiene repartidor asociado, incluir solo información básica
+                    ubicaciones_data.append({
+                        'repartidor_id': ubicacion.repartidor.id,
+                        'repartidor_nombre': ubicacion.repartidor.email,
+                        'latitud': float(ubicacion.latitud),
+                        'longitud': float(ubicacion.longitud),
+                        'timestamp': ubicacion.timestamp,
+                        'activo': True
+                    })
+            
+            return Response({
+                'message': 'Ubicaciones obtenidas exitosamente',
+                'count': len(ubicaciones_data),
+                'data': ubicaciones_data
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            print(f"Error al obtener ubicaciones: {str(e)}")
+            return Response({'error': 'Error al obtener ubicaciones'}, 
+                          status=status.HTTP_500_INTERNAL_SERVER_ERROR)

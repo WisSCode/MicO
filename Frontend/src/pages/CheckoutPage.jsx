@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { FaArrowLeft, FaMapMarkerAlt, FaUser, FaMoneyBillWave, FaCreditCard, FaWallet } from 'react-icons/fa';
+import AddressSelector from '../components/AddressSelector';
+import '../styles/address-manager.css';
 
 const CheckoutPage = () => {
   const navigate = useNavigate();
@@ -12,6 +14,7 @@ const CheckoutPage = () => {
     phone: '',
     address: ''
   });
+  const [selectedAddress, setSelectedAddress] = useState(null);
   const [errors, setErrors] = useState({});
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('');
 
@@ -81,7 +84,7 @@ const CheckoutPage = () => {
     if (!formData.email.trim()) newErrors.email = 'Email es requerido';
     else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Email inválido';
     if (!formData.phone.trim()) newErrors.phone = 'Teléfono es requerido';
-    if (!formData.address.trim()) newErrors.address = 'Dirección es requerida';
+    if (!selectedAddress) newErrors.address = 'Dirección de entrega es requerida';
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -131,6 +134,18 @@ const CheckoutPage = () => {
           empresa_id: pedido.empresa_id || pedido.empresa?.id,
           items: itemsFiltrados,
           metodo_pago: selectedPaymentMethod === 'cash' ? 'Efectivo' : selectedPaymentMethod === 'card' ? 'Tarjeta' : selectedPaymentMethod === 'yappy' ? 'Yappy' : 'Efectivo',
+          direccion_entrega: selectedAddress ? {
+            nombre: selectedAddress.nombre,
+            direccion: selectedAddress.direccion,
+            referencia: selectedAddress.referencia,
+            latitud: selectedAddress.latitud,
+            longitud: selectedAddress.longitud
+          } : null,
+          info_cliente: {
+            nombre: formData.name,
+            email: formData.email,
+            telefono: formData.phone
+          }
         };
       });
     } else if (orderData && orderData.items) {
@@ -149,6 +164,18 @@ const CheckoutPage = () => {
         empresa_id: orderData.empresa_id || orderData.empresa?.id,
         items: itemsFiltrados,
         metodo_pago: selectedPaymentMethod === 'cash' ? 'Efectivo' : selectedPaymentMethod === 'card' ? 'Tarjeta' : selectedPaymentMethod === 'yappy' ? 'Yappy' : 'Efectivo',
+        direccion_entrega: selectedAddress ? {
+          nombre: selectedAddress.nombre,
+          direccion: selectedAddress.direccion,
+          referencia: selectedAddress.referencia,
+          latitud: selectedAddress.latitud,
+          longitud: selectedAddress.longitud
+        } : null,
+        info_cliente: {
+          nombre: formData.name,
+          email: formData.email,
+          telefono: formData.phone
+        }
       }];
     } else {
       alert('No hay datos de pedido válidos.');
@@ -301,15 +328,15 @@ const CheckoutPage = () => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            width: '32px',
             height: '32px',
             borderRadius: '50%',
-            transition: 'background-color 0.2s'
+            transition: 'background-color 0.2s',
+            color: '#111'
           }}
           onMouseOver={(e) => e.target.style.backgroundColor = '#f8f9fa'}
           onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
         >
-          <FaArrowLeft />
+          <FaArrowLeft color="#111" />
         </button>
         <span style={{ fontWeight: 600 }}>Finalizar pedido</span>
       </div>
@@ -450,19 +477,10 @@ const CheckoutPage = () => {
               Dirección de entrega
             </h3>
             <div style={{ marginBottom: '1rem' }}>
-              <input
-                type="text"
-                name="address"
-                placeholder="Dirección"
-                value={formData.address}
-                onChange={handleInputChange}
-                style={{ 
-                  width: '100%', 
-                  padding: '0.75rem', 
-                  border: `1px solid ${errors.address ? '#e74c3c' : '#dee2e6'}`, 
-                  borderRadius: '8px',
-                  fontSize: '0.9rem'
-                }}
+              <AddressSelector
+                selectedAddress={selectedAddress}
+                onAddressChange={setSelectedAddress}
+                placeholder="Seleccionar dirección de entrega"
               />
               {errors.address && <p style={{ margin: '0.25rem 0 0 0', color: '#e74c3c', fontSize: '0.8rem' }}>{errors.address}</p>}
             </div>

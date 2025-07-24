@@ -21,6 +21,7 @@ import Footer from './components/Footer';
 import './styles/main.css';
 import { FaHamburger } from 'react-icons/fa';
 import RepartidorConfigPage from './pages/RepartidorConfigPage';
+import UbicacionPage from './pages/UbicacionPage';
 
 function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -120,6 +121,7 @@ function App() {
             <Route path="/cart" element={<CartPage />} />
             <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/order-confirmation" element={<OrderConfirmationPage />} />
+            <Route path="/ubicacion" element={<UbicacionPage />} />
           </Routes>
         </main>
         <Footer />

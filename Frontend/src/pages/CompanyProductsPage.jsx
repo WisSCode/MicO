@@ -143,10 +143,11 @@ const CompanyProductsPage = () => {
               borderRadius: '50%',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center'
+              justifyContent: 'center',
+              color: '#111'
             }}
           >
-            <FaArrowLeft />
+            <FaArrowLeft color="#111" />
           </button>
           <div>
             <h1 style={{ margin: 0, fontSize: '1.3rem', fontWeight: 700, color: '#222' }}>
@@ -210,7 +211,6 @@ const CompanyProductsPage = () => {
                     background: 'rgba(255,255,255,0.9)',
                     border: 'none',
                     borderRadius: '50%',
-                    width: '32px',
                     height: '32px',
                     display: 'flex',
                     alignItems: 'center',

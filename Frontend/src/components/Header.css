@@ -112,9 +112,13 @@
   display: flex;
   align-items: center;
   transition: background 0.15s;
+  color: #111;
 }
 .ue-hamburger-btn:hover {
   background: #f3f4f6;
+}
+.ue-hamburger-btn svg {
+  color: #111 !important;
 }
 .ue-logo-area {
   display: flex;

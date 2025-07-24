@@ -1,7 +1,12 @@
 from rest_framework import serializers
-from .models import Empresa, Producto, Pedido, ItemPedido
+from .models import Empresa, Producto, Pedido, ItemPedido, Cart, CartItem, UbicacionRepartidor, DireccionUsuario
 from users.models import User, Repartidor
-from .models import Cart, CartItem
+
+class DireccionUsuarioSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DireccionUsuario
+        fields = ['id', 'nombre', 'direccion', 'referencia', 'latitud', 'longitud', 'creada_en', 'actualizada_en']
+        read_only_fields = ['id', 'creada_en', 'actualizada_en']
 
 class EmpresaSerializer(serializers.ModelSerializer):
     class Meta:
@@ -63,29 +68,65 @@ class PedidoSerializer(serializers.ModelSerializer):
         queryset=Empresa.objects.all(), source='empresa'
     )
     empresa_nombre = serializers.CharField(source='empresa.nombre', read_only=True)
-    cliente_nombre = serializers.CharField(source='cliente.name', read_only=True)
+    cliente_nombre_usuario = serializers.CharField(source='cliente.name', read_only=True)
     repartidor_id = serializers.PrimaryKeyRelatedField(
         queryset=Repartidor.objects.all(), source='repartidor', required=False, allow_null=True
     )
-    repartidor_nombre = serializers.CharField(source='repartidor.user.name', read_only=True, default=None)
+    repartidor_nombre = serializers.SerializerMethodField()
     metodo_pago = serializers.CharField(required=False)
     items = ItemPedidoSerializer(many=True)
+    
+    # Campos para dirección de entrega (escribibles)
+    direccion_entrega = serializers.JSONField(write_only=True, required=False)
+    info_cliente = serializers.JSONField(write_only=True, required=False)
 
     class Meta:
         model = Pedido
         fields = [
-            'id', 'cliente_nombre', 'empresa_id', 'empresa_nombre',
+            'id', 'cliente_nombre_usuario', 'empresa_id', 'empresa_nombre',
             'repartidor_id', 'repartidor_nombre',
-            'fecha_pedido', 'total', 'estado', 'metodo_pago', 'items'
+            'fecha_pedido', 'total', 'estado', 'metodo_pago', 'items',
+            'direccion_entrega', 'info_cliente',
+            'direccion_nombre', 'direccion_completa', 'direccion_referencia',
+            'direccion_latitud', 'direccion_longitud',
+            'cliente_nombre', 'cliente_email', 'cliente_telefono'
         ]
         read_only_fields = [
-            'id', 'cliente_nombre', 'fecha_pedido', 'total', 'empresa_nombre', 'repartidor_nombre'
+            'id', 'cliente_nombre_usuario', 'fecha_pedido', 'total', 'empresa_nombre', 'repartidor_nombre'
         ]
+
+    def get_repartidor_nombre(self, obj):
+        """Obtener nombre del repartidor de forma segura"""
+        if obj.repartidor and obj.repartidor.user:
+            return obj.repartidor.user.name or obj.repartidor.user.email.split('@')[0]
+        return None
 
     def create(self, validated_data):
         items_data = validated_data.pop('items')
         metodo_pago = validated_data.pop('metodo_pago', 'Efectivo')
         cliente = validated_data.pop('cliente', self.context['request'].user)
+        
+        # Extraer información de dirección e cliente desde los campos JSON
+        direccion_entrega = validated_data.pop('direccion_entrega', {})
+        info_cliente = validated_data.pop('info_cliente', {})
+        
+        # Mapear datos de dirección a campos del modelo
+        if direccion_entrega:
+            validated_data.update({
+                'direccion_nombre': direccion_entrega.get('nombre'),
+                'direccion_completa': direccion_entrega.get('direccion'),
+                'direccion_referencia': direccion_entrega.get('referencia'),
+                'direccion_latitud': direccion_entrega.get('latitud'),
+                'direccion_longitud': direccion_entrega.get('longitud'),
+            })
+        
+        # Mapear información del cliente
+        if info_cliente:
+            validated_data.update({
+                'cliente_nombre': info_cliente.get('nombre'),
+                'cliente_email': info_cliente.get('email'),
+                'cliente_telefono': info_cliente.get('telefono'),
+            })
         
         pedido = Pedido.objects.create(cliente=cliente, metodo_pago=metodo_pago, **validated_data)
         total_pedido = 0
@@ -136,3 +177,11 @@ class PedidoSerializer(serializers.ModelSerializer):
             instance.save(update_fields=['total'])
 
         return instance
+
+class UbicacionRepartidorSerializer(serializers.ModelSerializer):
+    repartidor_email = serializers.CharField(source='repartidor.email', read_only=True)
+    
+    class Meta:
+        model = UbicacionRepartidor
+        fields = ['id', 'repartidor_email', 'latitud', 'longitud', 'timestamp']
+        read_only_fields = ['id', 'repartidor_email', 'timestamp']

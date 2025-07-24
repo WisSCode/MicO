@@ -25,7 +25,6 @@ useEffect(() => {
     if (location.state && location.state.pedidos && Array.isArray(location.state.pedidos)) {
       setOrders(location.state.pedidos);
       setLoading(false);
-      fetchOrderHistory();
       return;
     }
     // Si no, buscar pedidos confirmados en localStorage
@@ -41,8 +40,12 @@ useEffect(() => {
       setOrders([]);
     }
     setLoading(false);
+  }, [location.state]);
+
+  // UseEffect separado para cargar historial una sola vez al montar el componente
+  useEffect(() => {
     fetchOrderHistory();
-  }, [location.state, fetchOrderHistory]);
+  }, []);
 
   useEffect(() => {
     if (!orders || orders.length === 0) return;
@@ -93,15 +96,15 @@ useEffect(() => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            width: '32px',
             height: '32px',
             borderRadius: '50%',
-            transition: 'background-color 0.2s'
+            transition: 'background-color 0.2s',
+            color: '#111'
           }}
           onMouseOver={(e) => e.target.style.backgroundColor = '#f8f9fa'}
           onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
         >
-          <FaArrowLeft />
+          <FaArrowLeft color="#111" />
         </button>
         <span style={{ fontWeight: 600 }}>Confirmación de pedidos</span>
       </div>
@@ -162,7 +165,19 @@ useEffect(() => {
                 <strong>Método de pago: </strong>{order.metodo_pago || 'No especificado'}
               </div>
               <div style={{ marginBottom: '0.5rem' }}>
-                <strong>Dirección de entrega: </strong>direccion no asignada
+                <strong>Dirección de entrega: </strong>
+                {order.direccion_completa ? (
+                  <div style={{ marginTop: '0.25rem' }}>
+                    <div>{order.direccion_nombre && `${order.direccion_nombre} - `}{order.direccion_completa}</div>
+                    {order.direccion_referencia && (
+                      <div style={{ fontSize: '0.9rem', color: '#666', marginTop: '0.25rem' }}>
+                        Referencia: {order.direccion_referencia}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  'No especificada'
+                )}
               </div>
             </div>
             {/* Order Tracking */}

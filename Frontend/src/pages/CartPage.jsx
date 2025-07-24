@@ -125,15 +125,15 @@ const CartPage = () => {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              width: '32px',
               height: '32px',
               borderRadius: '50%',
-              transition: 'background-color 0.2s'
+              transition: 'background-color 0.2s',
+              color: '#111'
             }}
             onMouseOver={(e) => e.target.style.backgroundColor = '#f8f9fa'}
             onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
           >
-            <FaArrowLeft />
+            <FaArrowLeft color="#111" />
           </button>
           <span style={{ fontWeight: 600 }}>Carrito</span>
         </div>
@@ -193,15 +193,15 @@ const CartPage = () => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            width: '32px',
             height: '32px',
             borderRadius: '50%',
-            transition: 'background-color 0.2s'
+            transition: 'background-color 0.2s',
+            color: '#111'
           }}
           onMouseOver={(e) => e.target.style.backgroundColor = '#f8f9fa'}
           onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
         >
-          <FaArrowLeft />
+          <FaArrowLeft color="#111" />
         </button>
         <span style={{ fontWeight: 600 }}>
           Carrito ({cart.reduce((acc, item) => acc + item.quantity, 0)} productos)

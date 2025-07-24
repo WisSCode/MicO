@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { FaStar, FaMapMarkerAlt, FaPhoneAlt, FaStore } from 'react-icons/fa';
 import heroBg from '../assets/images/home.avif';
 import '../styles/main.css';
+import '../styles/address-manager.css';
 import { UserContext } from '../components/UserContext';
 
 import { fetchEmpresasPublic } from '../utils/empresas_public';
@@ -19,13 +20,13 @@ const HomePage = () => {
   const navigate = useNavigate();
   const [empresas, setEmpresas] = useState([]);
   const [imageErrors, setImageErrors] = useState({});
-  const [address, setAddress] = useState("");
+  const [selectedAddress, setSelectedAddress] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState({ empresas: [], productos: [] });
   const [searching, setSearching] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
-  const { user } = useContext(UserContext); // 
+  const { user } = useContext(UserContext); 
 
   useEffect(() => {
     fetchEmpresasPublic().then(setEmpresas).catch(() => setEmpresas([]));
@@ -127,6 +128,9 @@ const HomePage = () => {
           }}>
             Entregas de comida en Panamá
           </h1>
+
+
+
           <div style={{
             display: 'flex',
             alignItems: 'center',
@@ -136,18 +140,33 @@ const HomePage = () => {
             width: '100%',
             maxWidth: 420,
           }}>
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              background: '#fff',
-              borderRadius: 8,
-              boxShadow: '0 2px 12px 0 rgba(0,0,0,0.04)',
-              padding: '0.2rem 0.2rem 0.2rem 1rem',
-              minWidth: 340,
-              maxWidth: 420,
-              width: '100%',
-              height: 48,
-            }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                background: '#fff',
+                borderRadius: 16,
+                boxShadow: '0 4px 16px 0 rgba(249,115,22,0.07)',
+                padding: '0.2rem 0.2rem 0.2rem 0.8rem',
+                minWidth: 340,
+                maxWidth: 420,
+                width: '100%',
+                height: 44,
+                border: '2px solid #fff',
+                transition: 'border-color 0.2s, box-shadow 0.2s',
+              }}
+              onFocus={e => {
+                e.currentTarget.style.borderColor = '#f97316';
+                e.currentTarget.style.boxShadow = '0 0 0 3px rgba(249,115,22,0.13)';
+              }}
+              onBlur={e => {
+                e.currentTarget.style.borderColor = '#fff';
+                e.currentTarget.style.boxShadow = '0 4px 16px 0 rgba(249,115,22,0.07)';
+              }}
+            >
+              <span style={{ color: '#f97316', fontSize: '1.2rem', marginRight: 8, display: 'flex', alignItems: 'center' }}>
+                <svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path stroke="#f97316" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35m1.35-5.15a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+              </span>
               <input
                 type="text"
                 placeholder="Buscar empresas o comidas..."
@@ -161,6 +180,9 @@ const HomePage = () => {
                   padding: '0.7rem 0.5rem',
                   background: 'transparent',
                   height: '100%',
+                  color: '#222',
+                  fontWeight: 500,
+                  '::placeholder': { color: '#bbb' }
                 }}
               />
             </div>

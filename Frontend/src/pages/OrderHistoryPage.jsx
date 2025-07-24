@@ -72,15 +72,15 @@ const OrderHistoryPage = () => {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              width: '32px',
               height: '32px',
               borderRadius: '50%',
-              transition: 'background-color 0.2s'
+              transition: 'background-color 0.2s',
+              color: '#111'
             }}
             onMouseOver={(e) => e.target.style.backgroundColor = '#f8f9fa'}
             onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
           >
-            <FaArrowLeft />
+            <FaArrowLeft color="#111" />
           </button>
           <span style={{ fontWeight: 600 }}>Historial de pedidos</span>
         </div>
@@ -124,15 +124,15 @@ const OrderHistoryPage = () => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            width: '32px',
             height: '32px',
             borderRadius: '50%',
-            transition: 'background-color 0.2s'
+            transition: 'background-color 0.2s',
+            color: '#111'
           }}
           onMouseOver={(e) => e.target.style.backgroundColor = '#f8f9fa'}
           onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
         >
-          <FaArrowLeft />
+          <FaArrowLeft color="#111" />
         </button>
         <span style={{ fontWeight: 600 }}>Historial de pedidos ({orders.length})</span>
       </div>
@@ -172,8 +172,32 @@ const OrderHistoryPage = () => {
               {order.items ? order.items.length : 0} productos
             </div>
             <div style={{ marginBottom: '0.5rem', color: '#888' }}>
-              Rider: {order.rider_nombre ? order.rider_nombre : 'Sin asignar'}
+              Repartidor: {order.repartidor_nombre ? order.repartidor_nombre : 'Sin asignar'}
             </div>
+            
+            {/* Dirección de entrega */}
+            {(order.direccion_completa || order.direccion_nombre) && (
+              <div style={{ marginBottom: '0.75rem', padding: '0.5rem', backgroundColor: '#f8f9fa', borderRadius: '6px', border: '1px solid #e9ecef' }}>
+                <div style={{ fontWeight: 500, color: '#495057', marginBottom: '0.25rem', fontSize: '0.85rem' }}>
+                  📍 Dirección de entrega
+                </div>
+                {order.direccion_nombre && (
+                  <div style={{ fontWeight: 500, color: '#343a40', fontSize: '0.9rem' }}>
+                    {order.direccion_nombre}
+                  </div>
+                )}
+                {order.direccion_completa && (
+                  <div style={{ color: '#6c757d', fontSize: '0.85rem', marginTop: '0.25rem' }}>
+                    {order.direccion_completa}
+                  </div>
+                )}
+                {order.direccion_referencia && (
+                  <div style={{ color: '#6c757d', fontSize: '0.8rem', marginTop: '0.25rem', fontStyle: 'italic' }}>
+                    Referencia: {order.direccion_referencia}
+                  </div>
+                )}
+              </div>
+            )}
             {/* Productos del pedido */}
             {order.items && order.items.length > 0 && (
               <div style={{ marginTop: '0.5rem', color: '#444', fontSize: '0.97rem' }}>
