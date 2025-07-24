@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaTrash, FaMinus, FaPlus, FaArrowLeft } from 'react-icons/fa';
@@ -50,6 +49,7 @@ const CartPage = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       setCart(res.data.items || []);
+      window.dispatchEvent(new Event('cartUpdated'));
     } catch (err) {}
   };
 
@@ -65,6 +65,7 @@ const CartPage = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       setCart(res.data.items || []);
+      window.dispatchEvent(new Event('cartUpdated'));
     } catch (err) {}
   };
   // Eliminada la versión antigua de removeItem para evitar duplicidad
@@ -75,33 +76,35 @@ const CartPage = () => {
     return cart.reduce((total, item) => total + (parseFloat(item.producto.precio) * item.quantity), 0);
   };
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     if (cart.length === 0) return;
-    // Construir el pedido y guardarlo en localStorage
-    const order = {
-      items: cart.map(item => ({
-        id: item.producto.id,
-        name: item.producto.nombre,
-        price: parseFloat(item.producto.precio),
-        quantity: item.quantity,
-        empresa: item.producto.empresa
-      })),
-      total: cart.reduce((total, item) => total + (parseFloat(item.producto.precio) * item.quantity), 0)
-    };
-    localStorage.setItem('pendingOrder', JSON.stringify(order));
-    // Limpiar el carrito en el backend y frontend
-    const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
-    const token = localStorage.getItem('token');
-    axios.post(`${API_BASE}/cart/clear/`, {}, {
-      headers: { Authorization: `Bearer ${token}` }
-    }).then(() => {
-      setCart([]);
-      navigate('/checkout');
-    }).catch(() => {
-      // Si falla, igual navega al checkout pero muestra el carrito vacío
-      setCart([]);
-      navigate('/checkout');
+    
+    // Agrupar productos por empresa para preparar datos de checkout
+    const pedidosPorEmpresa = {};
+    cart.forEach(item => {
+      const empresaId = item.producto.empresa.id || item.producto.empresa;
+      const empresaNombre = item.producto.empresa.nombre || `Empresa ${empresaId}`;
+      if (!pedidosPorEmpresa[empresaId]) {
+        pedidosPorEmpresa[empresaId] = {
+          empresa_id: empresaId,
+          empresa_nombre: empresaNombre,
+          items: []
+        };
+      }
+      pedidosPorEmpresa[empresaId].items.push({
+        producto_id: item.producto.id,
+        producto_nombre: item.producto.nombre,
+        cantidad: item.quantity,
+        precio_unitario: parseFloat(item.producto.precio),
+        producto: item.producto
+      });
     });
+    
+    const datosParaCheckout = Object.values(pedidosPorEmpresa);
+    
+    // Guardar datos del carrito para checkout (NO pedidos creados)
+    localStorage.setItem('cartDataForCheckout', JSON.stringify(datosParaCheckout));
+    navigate('/checkout');
   };
 
   if (loading) {
@@ -112,7 +115,7 @@ const CartPage = () => {
       <div className="cart-page">
         <div className="cart-header" style={{ background: '#fff', padding: '1rem', borderBottom: '1px solid #e5e5e5', display: 'flex', alignItems: 'center' }}>
           <button 
-            onClick={() => navigate('/')}
+            onClick={() => navigate(-1)}
             style={{ 
               background: 'none', 
               border: 'none', 
@@ -159,6 +162,23 @@ const CartPage = () => {
     );
   }
 
+  // Agrupar productos por empresa
+  const groupedByEmpresa = cart.reduce((acc, item) => {
+    const empresaId = item.producto.empresa?.id || item.producto.empresa;
+    // Ahora producto.empresa es un objeto con nombre
+    let empresaNombre = '';
+    if (item.producto.empresa && item.producto.empresa.nombre) {
+      empresaNombre = item.producto.empresa.nombre;
+    } else {
+      empresaNombre = 'Empresa';
+    }
+    if (!acc[empresaId]) {
+      acc[empresaId] = { nombre: empresaNombre, items: [] };
+    }
+    acc[empresaId].items.push(item);
+    return acc;
+  }, {});
+
   return (
     <div className="cart-page">
       <div className="cart-header" style={{ background: '#fff', padding: '1rem', borderBottom: '1px solid #e5e5e5', display: 'flex', alignItems: 'center' }}>
@@ -189,70 +209,76 @@ const CartPage = () => {
       </div>
 
       <div className="cart-items" style={{ background: '#fff', marginBottom: '1rem' }}>
-        {cart.map((item) => (
-          <div key={item.id} style={{ padding: '1rem', borderBottom: '1px solid #f0f0f0', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <img 
-              src={item.producto.imagen || 'https://source.unsplash.com/80x80/?food,burger'}
-              alt={item.producto.nombre}
-              style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 10, marginRight: 16 }}
-              onError={e => { e.target.onerror = null; e.target.src = 'https://source.unsplash.com/80x80/?food,burger'; }}
-            />
-            <div style={{ flex: 1 }}>
-              <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1rem', fontWeight: 600 }}>{item.producto.nombre}</h3>
-              <p style={{ margin: 0, color: '#666', fontSize: '0.9rem' }}>{item.producto.empresa}</p>
-              <p style={{ margin: '0.5rem 0 0 0', fontWeight: 600, color: '#2c3e50' }}>${item.producto.precio}</p>
+        {Object.entries(groupedByEmpresa).map(([empresaId, empresaData]) => (
+          <div key={empresaId} style={{ marginBottom: '2rem', border: '1px solid #f3f3f3', borderRadius: 8, boxShadow: '0 2px 8px #f8f8f8' }}>
+            <div style={{ padding: '0.75rem 1rem', background: '#f8f9fa', borderBottom: '1px solid #eee', fontWeight: 700, fontSize: '1.1rem', color: '#f97316', borderTopLeftRadius: 8, borderTopRightRadius: 8 }}>
+              {empresaData.nombre}
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <button
-                onClick={() => updateQuantity(item.producto.id, item.quantity - 1)}
-                style={{ 
-                  background: item.quantity <= 1 ? '#eee' : '#f8f9fa', 
-                  border: '1px solid #dee2e6', 
-                  borderRadius: '50%', 
-                  width: '28px', 
-                  height: '28px', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center',
-                  cursor: item.quantity <= 1 ? 'not-allowed' : 'pointer',
-                  opacity: item.quantity <= 1 ? 0.5 : 1
-                }}
-                disabled={item.quantity <= 1}
-              >
-                <FaMinus size={10} />
-              </button>
-              <span style={{ minWidth: '20px', textAlign: 'center', fontWeight: 600 }}>{item.quantity}</span>
-              <button
-                onClick={() => updateQuantity(item.producto.id, item.quantity + 1)}
-                style={{ 
-                  background: '#f8f9fa', 
-                  border: '1px solid #dee2e6', 
-                  borderRadius: '50%', 
-                  width: '28px', 
-                  height: '28px', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center',
-                  cursor: 'pointer'
-                }}
-              >
-                <FaPlus size={10} />
-              </button>
-            </div>
-            <button
-              onClick={() => removeItem(item.producto.id)}
-              style={{ 
-                background: 'none', 
-                border: 'none', 
-                color: '#e74c3c', 
-                cursor: 'pointer',
-                padding: '0.5rem',
-                marginLeft: '0.5rem'
-              }}
-              title="Eliminar producto"
-            >
-              <FaTrash size={16} />
-            </button>
+            {empresaData.items.map((item) => (
+              <div key={item.id} style={{ padding: '1rem', borderBottom: '1px solid #f0f0f0', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <img 
+                  src={item.producto.imagen || 'https://source.unsplash.com/80x80/?food,burger'}
+                  alt={item.producto.nombre}
+                  style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 10, marginRight: 16 }}
+                  onError={e => { e.target.onerror = null; e.target.src = 'https://source.unsplash.com/80x80/?food,burger'; }}
+                />
+                <div style={{ flex: 1 }}>
+                  <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1rem', fontWeight: 600 }}>{item.producto.nombre}</h3>
+                  <p style={{ margin: '0.5rem 0 0 0', fontWeight: 600, color: '#2c3e50' }}>${item.producto.precio}</p>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <button
+                    onClick={() => updateQuantity(item.producto.id, item.quantity - 1)}
+                    style={{ 
+                      background: item.quantity <= 1 ? '#eee' : '#f8f9fa', 
+                      border: '1px solid #dee2e6', 
+                      borderRadius: '50%', 
+                      width: '28px', 
+                      height: '28px', 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center',
+                      cursor: item.quantity <= 1 ? 'not-allowed' : 'pointer',
+                      opacity: item.quantity <= 1 ? 0.5 : 1
+                    }}
+                    disabled={item.quantity <= 1}
+                  >
+                    <FaMinus size={10} />
+                  </button>
+                  <span style={{ minWidth: '20px', textAlign: 'center', fontWeight: 600 }}>{item.quantity}</span>
+                  <button
+                    onClick={() => updateQuantity(item.producto.id, item.quantity + 1)}
+                    style={{ 
+                      background: '#f8f9fa', 
+                      border: '1px solid #dee2e6', 
+                      borderRadius: '50%', 
+                      width: '28px', 
+                      height: '28px', 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <FaPlus size={10} />
+                  </button>
+                </div>
+                <button
+                  onClick={() => removeItem(item.producto.id)}
+                  style={{ 
+                    background: 'none', 
+                    border: 'none', 
+                    color: '#e74c3c', 
+                    cursor: 'pointer',
+                    padding: '0.5rem',
+                    marginLeft: '0.5rem'
+                  }}
+                  title="Eliminar producto"
+                >
+                  <FaTrash size={16} />
+                </button>
+              </div>
+            ))}
           </div>
         ))}
       </div>
@@ -286,4 +312,4 @@ const CartPage = () => {
   );
 };
 
-export default CartPage; 
+export default CartPage;

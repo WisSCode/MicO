@@ -1,83 +1,51 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaArrowLeft, FaCheckCircle, FaClock, FaUtensils, FaTruck, FaHome, FaFilter, FaSearch } from 'react-icons/fa';
-import { useUser } from '../components/UserContext';
+import { FaArrowLeft, FaHome } from 'react-icons/fa';
+import axios from 'axios';
+
 
 const OrderHistoryPage = () => {
   const navigate = useNavigate();
-  const { orders } = useUser();
-  const [filteredOrders, setFilteredOrders] = useState([]);
-  const [filter, setFilter] = useState('all');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Mostrar los pedidos más recientes primero
+  const filteredOrders = Array.isArray(orders) ? [...orders].reverse() : [];
+
+  // Función para obtener el historial de pedidos directamente del backend
+  const fetchOrderHistory = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        navigate('/login');
+        return;
+      }
+
+      const response = await axios.get('http://localhost:8000/api/pedidos/historial/', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      setOrders(response.data);
+    } catch (error) {
+      if (error.response?.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        navigate('/login');
+      } else {
+        setOrders([]);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    setLoading(true);
-    let filtered = [...orders].reverse(); // Show newest first
+    fetchOrderHistory();
+  }, []);
 
-    // Apply status filter
-    if (filter !== 'all') {
-      filtered = filtered.filter(order => order.status === filter);
-    }
-
-    // Apply search filter
-    if (searchTerm) {
-      filtered = filtered.filter(order => 
-        order.orderId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.items?.some(item => item.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        order.customerInfo?.name?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    setFilteredOrders(filtered);
-    setTimeout(() => setLoading(false), 300);
-  }, [orders, filter, searchTerm]);
-
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case 'completed':
-      case 'delivered':
-        return <FaCheckCircle color="#27ae60" />;
-      case 'preparing':
-        return <FaUtensils color="#f39c12" />;
-      case 'delivering':
-        return <FaTruck color="#3498db" />;
-      default:
-        return <FaClock color="#95a5a6" />;
-    }
-  };
-
-  const getStatusText = (status) => {
-    switch (status) {
-      case 'completed':
-      case 'delivered':
-        return 'Entregado';
-      case 'preparing':
-        return 'Preparando';
-      case 'delivering':
-        return 'En camino';
-      default:
-        return 'Pendiente';
-    }
-  };
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'completed':
-      case 'delivered':
-        return '#27ae60';
-      case 'preparing':
-        return '#f39c12';
-      case 'delivering':
-        return '#3498db';
-      default:
-        return '#95a5a6';
-    }
-  };
-
-  const getTotalItems = (order) => {
-    return order.items?.reduce((total, item) => total + item.quantity, 0) || 0;
-  };
 
   if (loading) {
     return (
@@ -116,7 +84,6 @@ const OrderHistoryPage = () => {
           </button>
           <span style={{ fontWeight: 600 }}>Historial de pedidos</span>
         </div>
-        
         <div style={{ textAlign: 'center', padding: '3rem 1rem' }}>
           <FaHome size={64} color="#ccc" style={{ marginBottom: '1rem' }} />
           <h2 style={{ marginBottom: '1rem', color: '#666' }}>No hay pedidos aún</h2>
@@ -147,7 +114,7 @@ const OrderHistoryPage = () => {
     <div className="order-history-page">
       <div className="history-header" style={{ background: '#fff', padding: '1rem', borderBottom: '1px solid #e5e5e5', display: 'flex', alignItems: 'center' }}>
         <button 
-          onClick={() => navigate('/')}
+          onClick={() => navigate(-1)}
           style={{ 
             background: 'none', 
             border: 'none', 
@@ -169,80 +136,23 @@ const OrderHistoryPage = () => {
         </button>
         <span style={{ fontWeight: 600 }}>Historial de pedidos ({orders.length})</span>
       </div>
-
-      {/* Filters and Search */}
-      <div style={{ background: '#fff', padding: '1rem', borderBottom: '1px solid #e5e5e5' }}>
-        <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <FaFilter size={14} color="#666" />
-            <select 
-              value={filter} 
-              onChange={(e) => setFilter(e.target.value)}
-              style={{ 
-                padding: '0.5rem', 
-                border: '1px solid #dee2e6', 
-                borderRadius: '6px',
-                fontSize: '0.9rem'
-              }}
-            >
-              <option value="all">Todos los pedidos</option>
-              <option value="pending">Pendientes</option>
-              <option value="preparing">Preparando</option>
-              <option value="delivering">En camino</option>
-              <option value="delivered">Entregados</option>
-            </select>
-          </div>
-          
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1, minWidth: '200px' }}>
-            <FaSearch size={14} color="#666" />
-            <input
-              type="text"
-              placeholder="Buscar por número de pedido, producto o nombre..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              style={{ 
-                flex: 1,
-                padding: '0.5rem', 
-                border: '1px solid #dee2e6', 
-                borderRadius: '6px',
-                fontSize: '0.9rem'
-              }}
-            />
-          </div>
-        </div>
-        
-        {filteredOrders.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '1rem', color: '#666' }}>
-            No se encontraron pedidos con los filtros aplicados
-          </div>
-        )}
-      </div>
-
+      <div style={{ background: '#fff', padding: '1rem', borderBottom: '1px solid #e5e5e5' }} />
       <div style={{ padding: '1rem' }}>
-        {filteredOrders.map((order, index) => (
+        {filteredOrders.map((order) => (
           <div 
             key={order.id} 
             style={{ 
-              background: '#fff', 
-              borderRadius: '12px', 
-              padding: '1.5rem', 
-              marginBottom: '1rem',
-              border: '1px solid #e5e5e5',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+              background: '#f9fafb', 
+              borderRadius: '14px', 
+              padding: '2rem 1.7rem', 
+              marginBottom: '2.2rem',
+              border: '2px solid #e0e0e0',
+              boxShadow: '0 4px 18px 0 rgba(0,0,0,0.08)',
               transition: 'transform 0.2s, box-shadow 0.2s',
-              cursor: 'pointer'
+              position: 'relative',
+              zIndex: 1
             }}
-            onMouseOver={(e) => {
-              e.target.style.transform = 'translateY(-2px)';
-              e.target.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
-            }}
-            onMouseOut={(e) => {
-              e.target.style.transform = 'translateY(0)';
-              e.target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
-            }}
-            onClick={() => navigate('/order-confirmation', { state: { orderId: order.id } })}
           >
-            {/* Order Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
               <div>
                 <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.1rem', fontWeight: 600 }}>
@@ -262,13 +172,20 @@ const OrderHistoryPage = () => {
               {order.items ? order.items.length : 0} productos
             </div>
             <div style={{ marginBottom: '0.5rem', color: '#888' }}>
-              {order.estado}
+              Rider: {order.rider_nombre ? order.rider_nombre : 'Sin asignar'}
             </div>
             {/* Productos del pedido */}
             {order.items && order.items.length > 0 && (
               <div style={{ marginTop: '0.5rem', color: '#444', fontSize: '0.97rem' }}>
                 {order.items.map((item, idx) => (
-                  <div key={idx}>
+                  <div
+                    key={idx}
+                    style={{
+                      padding: '0.5rem 0',
+                      borderBottom: idx !== order.items.length - 1 ? '1px solid #e5e5e5' : 'none',
+                      marginBottom: idx !== order.items.length - 1 ? '0.2rem' : 0
+                    }}
+                  >
                     {item.cantidad}x {item.producto_nombre} - ${item.precio_unitario * item.cantidad}
                   </div>
                 ))}

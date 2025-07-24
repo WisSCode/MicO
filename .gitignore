@@ -1,12 +1,17 @@
 # Python
 __pycache__/
+*/__pycache__/
+**/__pycache__/
 *.py[cod]
+*.pyo
+*.pyd
 *.log
 .env
-db.sqlite3    
+db.sqlite3
+.vscode/
 
 # Django
-/media
+media/
 /static
 
 # Node

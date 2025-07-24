@@ -1,4 +1,3 @@
-
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.utils import timezone
@@ -45,6 +44,14 @@ class CartViewSet(viewsets.ModelViewSet):
         CartItem.objects.filter(cart=cart, producto_id=producto_id).delete()
         serializer = self.get_serializer(cart)
         return Response(serializer.data)
+
+    @action(detail=False, methods=['post'], url_path='clear-cart')
+    def clear_cart(self, request):
+        cart, created = Cart.objects.get_or_create(user=request.user)
+        CartItem.objects.filter(cart=cart).delete()
+        serializer = self.get_serializer(cart)
+        return Response(serializer.data)
+
 class EmpresaViewSet(viewsets.ModelViewSet):
     # Endpoint para obtener los productos de una empresa específica
     @action(detail=True, methods=['get'], url_path='products', permission_classes=[])
@@ -113,6 +120,62 @@ class ProductoViewSet(viewsets.ModelViewSet):
 
 class PedidoViewSet(viewsets.ModelViewSet):
 
+    @action(detail=False, methods=['post'], url_path='crear-multiple')
+    def crear_multiple(self, request):
+        """
+        Endpoint para crear múltiples pedidos de diferentes empresas en una sola transacción
+        """
+        from django.db import transaction
+        
+        pedidos_data = request.data.get('pedidos', [])
+        if not pedidos_data or not isinstance(pedidos_data, list):
+            return Response({'error': 'Se requiere una lista de pedidos en el campo "pedidos".'}, status=400)
+        
+        pedidos_creados = []
+        
+        try:
+            with transaction.atomic():  # Transacción atómica para que todo se guarde o nada
+                for i, pedido_data in enumerate(pedidos_data):
+                    # Validar datos mínimos requeridos
+                    if not pedido_data.get('empresa_id'):
+                        return Response({'error': f'El pedido {i+1} debe tener empresa_id'}, status=400)
+                    if not pedido_data.get('items') or not isinstance(pedido_data.get('items'), list):
+                        return Response({'error': f'El pedido {i+1} debe tener items'}, status=400)
+                    
+                    # Verificar que la empresa existe
+                    try:
+                        from .models import Empresa
+                        empresa = Empresa.objects.get(id=pedido_data['empresa_id'])
+                    except Empresa.DoesNotExist:
+                        return Response({'error': f'La empresa con ID {pedido_data["empresa_id"]} no existe'}, status=400)
+                    
+                    # Verificar que todos los productos existen
+                    from .models import Producto
+                    for j, item in enumerate(pedido_data['items']):
+                        producto_id = item.get('producto_id')
+                        if not producto_id:
+                            return Response({'error': f'El item {j+1} del pedido {i+1} debe tener producto_id'}, status=400)
+                        try:
+                            producto = Producto.objects.get(id=producto_id)
+                        except Producto.DoesNotExist:
+                            return Response({'error': f'El producto con ID {producto_id} no existe'}, status=400)
+                    
+                    # Crear el pedido usando el serializer
+                    serializer = self.get_serializer(data=pedido_data)
+                    if serializer.is_valid():
+                        pedido = serializer.save(cliente=request.user)
+                        pedidos_creados.append(self.get_serializer(pedido).data)
+                    else:
+                        return Response({
+                            'error': f'Error de validación en el pedido {i+1}',
+                            'detalles': serializer.errors
+                        }, status=400)
+                        
+                return Response({'pedidos': pedidos_creados}, status=201)
+                
+        except Exception as e:
+            return Response({'error': f'Error al procesar los pedidos: {str(e)}'}, status=500)
+
     @action(detail=False, methods=['get'], url_path='historial') #historial de pedidos
     def historial(self, request):
         user = request.user
@@ -152,8 +215,6 @@ class PedidoViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        print(f"Usuario autenticado: {user.id} - {user.email}")
-        print(f"Rol del usuario: {user.role}")
 
         if user.role == 'empresa':
             empresas = user.empresas.all()

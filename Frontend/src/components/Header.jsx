@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useUser } from './UserContext';
 import { FaBars, FaMapMarkerAlt, FaHamburger, FaShoppingCart } from 'react-icons/fa';
+import axios from 'axios';
 import './Header.css';
 
 const Header = ({ onMenuToggle }) => {
@@ -11,26 +12,51 @@ const Header = ({ onMenuToggle }) => {
   const [cartCount, setCartCount] = useState(0);
 
   useEffect(() => {
-    const updateCartCount = () => {
+    const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
+    const fetchCartCount = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setCartCount(0);
+        return;
+      }
       try {
-        const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-        const count = cart.reduce((total, item) => total + item.quantity, 0);
+        const res = await axios.get(`${API_BASE}/cart/my-cart/`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const items = res.data.items || [];
+        const count = items.reduce((total, item) => total + item.quantity, 0);
         setCartCount(count);
       } catch (error) {
-        console.error('Error updating cart count:', error);
         setCartCount(0);
       }
     };
 
-    updateCartCount();
-    window.addEventListener('storage', updateCartCount);
-    
-    // Listen for custom event when cart is updated
-    window.addEventListener('cartUpdated', updateCartCount);
+    fetchCartCount();
+    // Solo actualiza cuando se dispara el evento personalizado
+    const handleCartUpdated = async () => {
+      // Esperar un pequeño tiempo para asegurar que el backend ya limpió el carrito
+      setTimeout(async () => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          setCartCount(0);
+          return;
+        }
+        try {
+          const res = await axios.get(`${API_BASE}/cart/my-cart/`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          const items = res.data.items || [];
+          const count = items.reduce((total, item) => total + item.quantity, 0);
+          setCartCount(count);
+        } catch (error) {
+          setCartCount(0);
+        }
+      }, 200); // 200ms de espera
+    };
+    window.addEventListener('cartUpdated', handleCartUpdated);
 
     return () => {
-      window.removeEventListener('storage', updateCartCount);
-      window.removeEventListener('cartUpdated', updateCartCount);
+      window.removeEventListener('cartUpdated', handleCartUpdated);
     };
   }, []);
 
@@ -141,7 +167,7 @@ const Header = ({ onMenuToggle }) => {
                   <span style={{
                     position: 'absolute',
                     top: '-5px',
-                    right: '-5px',
+                    left: '-5px',
                     background: '#e74c3c',
                     color: '#fff',
                     borderRadius: '50%',
@@ -151,7 +177,9 @@ const Header = ({ onMenuToggle }) => {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontWeight: 'bold'
+                    fontWeight: 'bold',
+                    pointerEvents: 'none',
+                    zIndex: 2
                   }}>
                     {cartCount}
                   </span>

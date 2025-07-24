@@ -10,6 +10,8 @@ class EmpresaSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'creado_en']
 
 class ProductoSerializer(serializers.ModelSerializer):
+    empresa = EmpresaSerializer(read_only=True)
+
     class Meta:
         model = Producto
         fields = ['id', 'empresa', 'nombre', 'descripcion', 'precio', 'imagen']
@@ -45,6 +47,16 @@ class ItemPedidoSerializer(serializers.ModelSerializer):
 
     def get_total(self, obj):
         return obj.get_total()
+    
+    def validate_cantidad(self, value):
+        if value <= 0:
+            raise serializers.ValidationError("La cantidad debe ser mayor a 0")
+        return value
+    
+    def validate_producto_id(self, value):
+        if not value:
+            raise serializers.ValidationError("El producto es requerido")
+        return value
 
 class PedidoSerializer(serializers.ModelSerializer):
     empresa_id = serializers.PrimaryKeyRelatedField(
@@ -56,6 +68,7 @@ class PedidoSerializer(serializers.ModelSerializer):
         queryset=Repartidor.objects.all(), source='repartidor', required=False, allow_null=True
     )
     repartidor_nombre = serializers.CharField(source='repartidor.user.name', read_only=True, default=None)
+    metodo_pago = serializers.CharField(required=False)
     items = ItemPedidoSerializer(many=True)
 
     class Meta:
@@ -63,7 +76,7 @@ class PedidoSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'cliente_nombre', 'empresa_id', 'empresa_nombre',
             'repartidor_id', 'repartidor_nombre',
-            'fecha_pedido', 'total', 'estado', 'items'
+            'fecha_pedido', 'total', 'estado', 'metodo_pago', 'items'
         ]
         read_only_fields = [
             'id', 'cliente_nombre', 'fecha_pedido', 'total', 'empresa_nombre', 'repartidor_nombre'
@@ -71,8 +84,10 @@ class PedidoSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         items_data = validated_data.pop('items')
+        metodo_pago = validated_data.pop('metodo_pago', 'Efectivo')
         cliente = validated_data.pop('cliente', self.context['request'].user)
-        pedido = Pedido.objects.create(cliente=cliente, **validated_data)
+        
+        pedido = Pedido.objects.create(cliente=cliente, metodo_pago=metodo_pago, **validated_data)
         total_pedido = 0
 
         for item_data in items_data:
@@ -93,9 +108,12 @@ class PedidoSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         items_data = validated_data.pop('items', None)
+        metodo_pago = validated_data.pop('metodo_pago', None)
 
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
+        if metodo_pago:
+            instance.metodo_pago = metodo_pago
         instance.save()
 
         if items_data is not None:

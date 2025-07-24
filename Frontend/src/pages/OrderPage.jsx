@@ -154,6 +154,7 @@ const OrderPage = () => {
     );
   }
 
+
   // Asegurar que currentOrders sea un array antes de hacer map
   const safeCurrentOrders = currentOrders || [];
 
@@ -184,41 +185,31 @@ const OrderPage = () => {
         <span style={{ fontWeight: 600 }}>Estado de Pedidos ({safeCurrentOrders.length})</span>
       </div>
 
-      <div style={{ padding: '1rem' }}>
-        {safeCurrentOrders.map((order) => (
-          <div 
-            key={order.orderId} 
-            style={{ 
-              background: '#fff', 
-              borderRadius: '12px', 
-              padding: '1.5rem', 
-              marginBottom: '1rem',
-              border: '1px solid #e5e5e5',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-            }}
-          >
-            {/* Order Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-              <div>
-                <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.1rem', fontWeight: 600 }}>
-                  Pedido #{order.orderId}
-                </h3>
-                <p style={{ margin: 0, color: '#666', fontSize: '0.9rem' }}>
-                  {new Date(order.createdAt).toLocaleDateString()} - {new Date(order.createdAt).toLocaleTimeString()}
-                </p>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                {getStatusIcon(order.status)}
-                <span style={{ fontSize: '0.9rem', fontWeight: 500, color: getStatusColor(order.status) }}>
-                  {getStatusText(order.status)}
-                </span>
-              </div>
+      {/* Renderizar cada pedido activo */}
+      {safeCurrentOrders.map((order, orderIndex) => (
+        <div key={order.orderId || orderIndex} style={{ margin: '2rem auto', maxWidth: 600, background: '#f9f9f9', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', padding: '1.5rem' }}>
+          <div style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              {getStatusIcon(order.status)}
+              <span style={{ fontWeight: 600, fontSize: '1.1rem' }}>Pedido</span>
+              <span style={{ color: '#888', fontWeight: 400, fontSize: '0.95rem', marginLeft: 8 }}>ID: {order.orderId || order.id}</span>
             </div>
+            <span style={{ color: getStatusColor(order.status), fontWeight: 500 }}>{getStatusText(order.status)}</span>
+          </div>
 
-            {/* Order Items */}
-            <div style={{ marginBottom: '1rem' }}>
-              {(order.items || []).map((item, itemIndex) => (
-                <div key={item.name + '-' + itemIndex} style={{
+          {/* Empresa */}
+          {order.empresa_nombre && (
+            <div style={{ marginBottom: '0.5rem', color: '#2c3e50', fontWeight: 600, fontSize: '1rem' }}>
+              Empresa: {order.empresa_nombre}
+            </div>
+          )}
+
+          {/* Productos del pedido */}
+          <div style={{ marginBottom: '1rem' }}>
+            {(order.items || []).map((item, itemIndex) => {
+              // Eliminar recuadro de imagen, solo mostrar info textual
+              return (
+                <div key={(item.producto_nombre || item.producto_id || 'item') + '-' + itemIndex} style={{
                   padding: '1rem',
                   borderBottom: '1px solid #f0f0f0',
                   display: 'flex',
@@ -226,145 +217,91 @@ const OrderPage = () => {
                   gap: '1rem',
                   background: '#fff'
                 }}>
-                  <img
-                    src={item.image}
-                    alt={item.name}
-                    style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 10, marginRight: 16 }}
-                    onError={e => { e.target.onerror = null; e.target.src = 'https://source.unsplash.com/80x80/?food,burger'; }}
-                  />
                   <div style={{ flex: 1 }}>
-                    <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1rem', fontWeight: 600 }}>{item.name}</h3>
-                    <p style={{ margin: 0, color: '#666', fontSize: '0.9rem' }}>{item.company}</p>
-                    <p style={{ margin: '0.5rem 0 0 0', fontWeight: 600, color: '#2c3e50' }}>${item.price}</p>
+                    <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1rem', fontWeight: 600 }}>{item.producto_nombre || (item.producto && item.producto.nombre) || 'Producto'}</h3>
+                    {(item.producto_id || (item.producto && item.producto.id)) && (
+                      <span style={{ fontSize: '0.8rem', color: '#aaa' }}>ID: {item.producto_id || (item.producto && item.producto.id)}</span>
+                    )}
+                    <p style={{ margin: '0.5rem 0 0 0', fontWeight: 600, color: '#2c3e50' }}>${item.precio_unitario}</p>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <span style={{ minWidth: '20px', textAlign: 'center', fontWeight: 600 }}>{item.quantity}x</span>
+                    <span style={{ minWidth: '20px', textAlign: 'center', fontWeight: 600 }}>{item.cantidad}x</span>
                   </div>
-                  <span style={{ fontWeight: 600, color: '#2c3e50', minWidth: 60, textAlign: 'right' }}>${item.price * item.quantity}</span>
+                  <span style={{ fontWeight: 600, color: '#2c3e50', minWidth: 60, textAlign: 'right' }}>${(item.precio_unitario * item.cantidad).toFixed(2)}</span>
                 </div>
-              ))}
-            </div>
+              );
+            })}
+          </div>
 
-            {/* Order Total */}
-            <div style={{ borderTop: '1px solid #e5e5e5', paddingTop: '1rem', marginBottom: '1rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600, fontSize: '1.1rem' }}>
-                <span>Total:</span>
-                <span>${order.total}</span>
-              </div>
-              {order.coupon && (
-                <div style={{ fontSize: '0.9rem', color: '#27ae60', marginTop: '0.5rem' }}>
-                  Cupón aplicado: {order.coupon}
-                </div>
-              )}
+          {/* Order Total */}
+          <div style={{ borderTop: '1px solid #e5e5e5', paddingTop: '1rem', marginBottom: '1rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600, fontSize: '1.1rem' }}>
+              <span>Total:</span>
+              <span>${order.total}</span>
             </div>
-
-            {/* Order Progress */}
-            <div style={{ marginTop: '1rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                <span style={{ fontSize: '0.9rem', fontWeight: 500 }}>Progreso del pedido:</span>
-                <button 
-                  onClick={() => simulateOrderProgress(order.orderId)}
-                  style={{ 
-                    background: '#f8f9fa', 
-                    border: '1px solid #dee2e6', 
-                    borderRadius: '6px',
-                    padding: '0.25rem 0.5rem',
-                    fontSize: '0.8rem',
-                    cursor: 'pointer'
-                  }}
-                >
-                  Simular progreso
-                </button>
+            {order.coupon && (
+              <div style={{ fontSize: '0.9rem', color: '#27ae60', marginTop: '0.5rem' }}>
+                Cupón aplicado: {order.coupon}
               </div>
-              
-              {/* Progress Bar */}
+            )}
+          </div>
+
+          {/* Order Progress (sin botón de simular progreso ni ver detalles) */}
+          <div style={{ marginTop: '1rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+              <span style={{ fontSize: '0.9rem', fontWeight: 500 }}>Progreso del pedido:</span>
+            </div>
+            {/* Progress Bar */}
+            <div style={{ 
+              width: '100%', 
+              height: '8px', 
+              background: '#e5e5e5', 
+              borderRadius: '4px',
+              overflow: 'hidden'
+            }}>
               <div style={{ 
-                width: '100%', 
-                height: '8px', 
-                background: '#e5e5e5', 
-                borderRadius: '4px',
-                overflow: 'hidden'
-              }}>
-                <div style={{ 
-                  width: `${(['pending', 'preparing', 'delivering', 'delivered'].indexOf(order.status) + 1) * 25}%`,
-                  height: '100%',
-                  background: getStatusColor(order.status),
-                  transition: 'width 0.5s ease'
-                }}></div>
-              </div>
-              
-              {/* Progress Steps */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.5rem' }}>
-                {['Pendiente', 'Preparando', 'En camino', 'Entregado'].map((step, index) => {
-                  const isCompleted = ['pending', 'preparing', 'delivering', 'delivered'].indexOf(order.status) >= index;
-                  return (
-                    <div key={step} style={{ textAlign: 'center' }}>
-                      <div style={{
-                        width: '20px',
-                        height: '20px',
-                        borderRadius: '50%',
-                        background: isCompleted ? getStatusColor(order.status) : '#e5e5e5',
-                        margin: '0 auto 0.25rem auto',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '0.7rem',
-                        color: isCompleted ? '#fff' : '#999'
-                      }}>
-                        {isCompleted ? '✓' : index + 1}
-                      </div>
-                      <span style={{ 
-                        fontSize: '0.7rem', 
-                        color: isCompleted ? getStatusColor(order.status) : '#999',
-                        fontWeight: isCompleted ? 600 : 400
-                      }}>
-                        {step}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
+                width: `${(['pending', 'preparing', 'delivering', 'delivered'].indexOf(order.status) + 1) * 25}%`,
+                height: '100%',
+                background: getStatusColor(order.status),
+                transition: 'width 0.5s ease'
+              }}></div>
             </div>
-
-            {/* Action Buttons */}
-            <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem' }}>
-              <button 
-                onClick={() => navigate('/order-confirmation', { state: { order } })}
-                style={{ 
-                  flex: 1,
-                  padding: '0.75rem', 
-                  background: '#2c3e50', 
-                  color: '#fff',
-                  border: 'none', 
-                  borderRadius: '8px',
-                  fontSize: '0.9rem',
-                  fontWeight: 600,
-                  cursor: 'pointer'
-                }}
-              >
-                Ver detalles
-              </button>
-              <button 
-                onClick={() => navigate('/order-history')}
-                style={{ 
-                  flex: 1,
-                  padding: '0.75rem', 
-                  background: '#f8f9fa', 
-                  border: '1px solid #dee2e6', 
-                  borderRadius: '8px',
-                  fontSize: '0.9rem',
-                  fontWeight: 600,
-                  cursor: 'pointer'
-                }}
-              >
-                Historial
-              </button>
+            {/* Progress Steps */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.5rem' }}>
+              {['Pendiente', 'Preparando', 'En camino', 'Entregado'].map((step, index) => {
+                const isCompleted = ['pending', 'preparing', 'delivering', 'delivered'].indexOf(order.status) >= index;
+                return (
+                  <div key={step} style={{ textAlign: 'center' }}>
+                    <div style={{
+                      width: '20px',
+                      height: '20px',
+                      borderRadius: '50%',
+                      background: isCompleted ? getStatusColor(order.status) : '#e5e5e5',
+                      margin: '0 auto 0.25rem auto',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '0.7rem',
+                      color: isCompleted ? '#fff' : '#999'
+                    }}>
+                      {isCompleted ? '✓' : index + 1}
+                    </div>
+                    <span style={{ 
+                      fontSize: '0.7rem', 
+                      color: isCompleted ? getStatusColor(order.status) : '#999',
+                      fontWeight: isCompleted ? 600 : 400
+                    }}>
+                      {step}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
           </div>
-        ))}
-      </div>
+        </div>
+      ))}
     </div>
   );
-};
+}
 
-export default OrderPage; 
+export default OrderPage;

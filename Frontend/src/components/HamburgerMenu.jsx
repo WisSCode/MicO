@@ -61,21 +61,6 @@ const HamburgerMenu = ({ isOpen, onToggle }) => {
             );
           })}
         </ul>
-        <div className="sidebar-cupones">
-          <h4><FaGift style={{marginRight:4}}/>Cupones</h4>
-          {cupones.map((c, index) => (
-            <div 
-              className="cupon-card" 
-              key={c.code}
-              style={{
-                animationDelay: `${index * 0.1}s`
-              }}
-            >
-              <span className="cupon-code">{c.code}</span>
-              <span className="cupon-desc">{c.desc}</span>
-            </div>
-          ))}
-        </div>
       </nav>
       {isOpen && <div className="sidebar-backdrop apple-blur" onClick={handleClose}></div>}
     </>

@@ -14,7 +14,6 @@ const login = async (email, password) => {
       },
     }
   );
-  console.log(response.data);
   localStorage.setItem('token', response.data.access);
   localStorage.setItem('refresh', response.data.refresh);
   localStorage.setItem('name', response.data.name);

@@ -15,6 +15,7 @@ const CompanyProductsPage = () => {
   const [company, setCompany] = useState(null);
   const [products, setProducts] = useState([]);
   const [favs, setFavs] = useState([]);
+  const [cartMessage, setCartMessage] = useState('');
 
   useEffect(() => {
     const fetchCompanyAndProducts = async () => {
@@ -91,14 +92,36 @@ const CompanyProductsPage = () => {
       }, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      navigate('/cart');
+      window.dispatchEvent(new Event('cartUpdated'));
+      setCartMessage('¡Producto añadido al carrito!');
+      setTimeout(() => setCartMessage(''), 2500);
     } catch (err) {
-      alert('Error al agregar al carrito');
+      setCartMessage('Error al agregar al carrito');
+      setTimeout(() => setCartMessage(''), 2500);
     }
   };
 
   return (
     <div style={{ background: '#f8f9fa', minHeight: '100vh' }}>
+      {cartMessage && (
+        <div style={{
+          position: 'fixed',
+          top: '1.5rem',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          background: cartMessage.startsWith('Error') ? '#fee2e2' : '#d1fae5',
+          color: cartMessage.startsWith('Error') ? '#b91c1c' : '#065f46',
+          padding: '1rem 2rem',
+          borderRadius: '8px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+          zIndex: 9999,
+          fontWeight: 600,
+          fontSize: '1rem',
+          transition: 'opacity 0.3s'
+        }}>
+          {cartMessage}
+        </div>
+      )}
       {/* Header */}
       <div style={{ 
         background: '#fff', 
