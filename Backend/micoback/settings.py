@@ -28,7 +28,13 @@ SECRET_KEY = config('SECRET_KEY')
 
 DEBUG = config('DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = []
+# Lista de hosts permitidos (seguridad)
+# En producción, especificar explícitamente los dominios permitidos
+ALLOWED_HOSTS = config(
+    'ALLOWED_HOSTS',
+    default='localhost,127.0.0.1',
+    cast=lambda v: [s.strip() for s in v.split(',')]
+)
 
 
 # Application definition
@@ -51,7 +57,7 @@ AUTH_USER_MODEL = 'users.User'
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # Debe estar antes de CommonMiddleware
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -144,12 +150,89 @@ SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
-# para trabajar con npm/vite
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
+# ============================================================================
+# CONFIGURACIÓN SEGURA DE CORS (Cross-Origin Resource Sharing)
+# ============================================================================
+# IMPORTANTE: Esta configuración implementa una lista blanca estricta
+# para prevenir vulnerabilidades de seguridad relacionadas con CORS.
+
+# Lista blanca de dominios autorizados (NO usar '*' nunca)
+# Los dominios deben especificarse explícitamente con protocolo y puerto
+# Se pueden configurar mediante variable de entorno separada por comas
+CORS_ALLOWED_ORIGINS_ENV = config(
+    'CORS_ALLOWED_ORIGINS',
+    default='http://localhost:5173,http://127.0.0.1:5173',
+    cast=lambda v: [s.strip() for s in v.split(',') if s.strip()]
+)
+
+CORS_ALLOWED_ORIGINS = CORS_ALLOWED_ORIGINS_ENV
+
+# Permitir credenciales (cookies, headers de autenticación)
+# IMPORTANTE: Cuando CORS_ALLOW_CREDENTIALS = True, NO se puede usar '*'
+# en CORS_ALLOWED_ORIGINS. Debe ser una lista específica de dominios.
+CORS_ALLOW_CREDENTIALS = True
+
+# Deshabilitar completamente el uso de comodines
+# Esto previene que se use 'Access-Control-Allow-Origin: *'
+CORS_ALLOW_ALL_ORIGINS = False
+
+# NO reflejar automáticamente el Origin del cliente
+# Esto previene ataques donde un sitio malicioso envía su propio Origin
+CORS_ALLOW_ORIGIN_REGEX = None
+
+# Métodos HTTP permitidos en solicitudes CORS
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
 ]
 
-CORS_ALLOW_CREDENTIALS = True
+# Headers permitidos en solicitudes CORS
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',  # Necesario para JWT
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
+
+# Headers expuestos al cliente en respuestas CORS
+CORS_EXPOSE_HEADERS = [
+    'content-type',
+    'authorization',
+]
+
+# Tiempo máximo de cache para preflight requests (en segundos)
+# Reduce la cantidad de preflight requests
+CORS_PREFLIGHT_MAX_AGE = 86400  # 24 horas
+
+# Configuración adicional de seguridad
+# Prevenir que se envíen credenciales a orígenes no autorizados
+CORS_URLS_REGEX = r'^/api/.*$'  # Solo aplicar CORS a rutas /api/
+
+# ============================================================================
+# HEADERS DE SEGURIDAD ADICIONALES
+# ============================================================================
+# Estos headers complementan la configuración CORS y mejoran la seguridad general
+
+if not DEBUG:
+    # Solo en producción
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = 'DENY'  # Prevenir clickjacking
+    SECURE_HSTS_SECONDS = 31536000  # 1 año
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SECURE_SSL_REDIRECT = True  # Redirigir HTTP a HTTPS
+    SESSION_COOKIE_SECURE = True  # Cookies solo por HTTPS
+    CSRF_COOKIE_SECURE = True  # CSRF cookies solo por HTTPS
 
 LOGGING = {
     'version': 1,
